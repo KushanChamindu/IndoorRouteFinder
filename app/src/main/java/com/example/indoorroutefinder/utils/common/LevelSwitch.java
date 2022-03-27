@@ -1,5 +1,7 @@
-package com.example.indoorroutefinder;
+package com.example.indoorroutefinder.utils.common;
 
+import com.example.indoorroutefinder.utils.common.ExpressionBuilder;
+import com.example.indoorroutefinder.utils.common.ExpressionData;
 import com.mapbox.mapboxsdk.maps.Style;
 import com.mapbox.mapboxsdk.style.expressions.Expression;
 import com.mapbox.mapboxsdk.style.layers.FillExtrusionLayer;

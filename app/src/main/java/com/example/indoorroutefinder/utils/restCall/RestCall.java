@@ -1,4 +1,4 @@
-package com.example.indoorroutefinder;
+package com.example.indoorroutefinder.utils.restCall;
 
 import android.os.AsyncTask;
 
@@ -9,7 +9,7 @@ import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
 
-class RestCall extends AsyncTask<String, Void, String> {
+public class RestCall extends AsyncTask<String, Void, String> {
 
     @Override
     protected String doInBackground(String... strings) {

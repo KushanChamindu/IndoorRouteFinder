@@ -8,7 +8,10 @@ import android.widget.Button;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 
-import com.example.indoorroutefinder.LevelSwitch;
+import com.example.indoorroutefinder.utils.common.LevelSwitch;
+import com.example.indoorroutefinder.utils.poiSelection.AnnotationPoint;
+import com.example.indoorroutefinder.utils.poiSelection.PoiGeoJsonObject;
+import com.example.indoorroutefinder.utils.restCall.RestCall;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.MapperFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -43,7 +46,6 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     private final String STYLE_URL = "https://tilesservices.webservices.infsoft.com/api/mapstyle/style/";
     private final String API_KEY = "8c97d7c6-0c3a-41de-b67a-fb7628efba79";
     private final String INITIAL_3D = "FALSE";
-
     private final String POI_LAYER_ID = "locls-pois";
 
     private MapView mapView;
@@ -221,6 +223,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
             mapboxMap.removeMarker(marker);
         }
     }
+
     public void loadPOIs() {
         String geojsonbaseURL = "https://tiles.infsoft.com/api/geoobj/json/";
         String icid = "/en/";
@@ -231,9 +234,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         try {
             RestCall restCall = new RestCall();
             poiGeoJson = restCall.execute(urlString).get();
-        } catch (ExecutionException e) {
-            e.printStackTrace();
-        } catch (InterruptedException e) {
+        } catch (ExecutionException | InterruptedException e) {
             e.printStackTrace();
         }
 
@@ -260,6 +261,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         }
         return annotationPoint;
     }
+
     @Override
     public void onStart() {
         super.onStart();

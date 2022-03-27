@@ -1,5 +1,6 @@
-package com.example.indoorroutefinder;
+package com.example.indoorroutefinder.utils.common;
 
+import com.example.indoorroutefinder.utils.common.ExpressionData;
 import com.mapbox.mapboxsdk.style.expressions.Expression;
 
 class ExpressionValue implements ExpressionData {
