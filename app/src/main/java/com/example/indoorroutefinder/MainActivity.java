@@ -2,10 +2,13 @@ package com.example.indoorroutefinder;
 
 import android.os.Bundle;
 
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.mapbox.mapboxsdk.Mapbox;
 import com.mapbox.mapboxsdk.maps.MapView;
+import com.mapbox.mapboxsdk.maps.MapboxMap;
+import com.mapbox.mapboxsdk.maps.OnMapReadyCallback;
 import com.mapbox.mapboxsdk.maps.Style;
 
 public class MainActivity extends AppCompatActivity {
@@ -19,21 +22,27 @@ public class MainActivity extends AppCompatActivity {
     }
 
     @Override
-    protected void onStop() {
-        super.onStop();
-        mapView.onStop();
-    }
-
-    @Override
     protected void onResume() {
         super.onResume();
         mapView.onResume();
     }
 
     @Override
-    protected void onDestroy() {
-        super.onDestroy();
-        mapView.onDestroy();
+    protected void onPause() {
+        super.onPause();
+        mapView.onPause();
+    }
+
+    @Override
+    protected void onStop() {
+        super.onStop();
+        mapView.onStop();
+    }
+
+    @Override
+    protected void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+        mapView.onSaveInstanceState(outState);
     }
 
     @Override
@@ -43,25 +52,49 @@ public class MainActivity extends AppCompatActivity {
     }
 
     @Override
-    protected void onSaveInstanceState(Bundle outState){
-        super.onSaveInstanceState(outState);
-        mapView.onSaveInstanceState(outState);
+    protected void onDestroy() {
+        super.onDestroy();
+        mapView.onDestroy();
     }
-
 
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+//        super.onCreate(savedInstanceState);
+//        setContentView(R.layout.activity_main);
+//        Mapbox.getInstance(this, String.valueOf(R.string.mapbox_access_token));
+//        setContentView(R.layout.activity_main);
+//        mapView = (MapView) findViewById(R.id.mapView);
+//        mapView.onCreate(savedInstanceState);
+////        mapView.setStyleUrl(Style.MAPBOX_STREETS);
+//        mapView.getMapAsync(mapboxMap -> mapboxMap.setStyle(
+//                new Style.Builder().fromUrl(Style.MAPBOX_STREETS)
+//        ));
+//    }
         super.onCreate(savedInstanceState);
+
+        Mapbox.getInstance(this, getString(R.string.mapbox_access_token));
+
         setContentView(R.layout.activity_main);
-        Mapbox.getInstance(this, String.valueOf(R.string.mapbox_access_token));
-        setContentView(R.layout.activity_main);
+
         mapView = (MapView) findViewById(R.id.mapView);
         mapView.onCreate(savedInstanceState);
-//        mapView.setStyleUrl(Style.MAPBOX_STREETS);
-        mapView.getMapAsync(mapboxMap -> mapboxMap.setStyle(
-                new Style.Builder().fromUrl(Style.MAPBOX_STREETS)
-        ));
-    }
+        mapView.getMapAsync(new OnMapReadyCallback() {
+            @Override
+            public void onMapReady(@NonNull MapboxMap mapboxMap) {
 
+                mapboxMap.setStyle(Style.MAPBOX_STREETS, new Style.OnStyleLoaded() {
+                    @Override
+                    public void onStyleLoaded(@NonNull Style style) {
+
+                        // Map is set up and the style has loaded. Now you can add data or make other map adjustments
+
+
+                    }
+                });
+
+            }
+        });
+
+    }
 }
