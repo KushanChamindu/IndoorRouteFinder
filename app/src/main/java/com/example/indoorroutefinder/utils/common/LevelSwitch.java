@@ -1,7 +1,5 @@
 package com.example.indoorroutefinder.utils.common;
 
-import com.example.indoorroutefinder.utils.common.ExpressionBuilder;
-import com.example.indoorroutefinder.utils.common.ExpressionData;
 import com.mapbox.mapboxsdk.maps.Style;
 import com.mapbox.mapboxsdk.style.expressions.Expression;
 import com.mapbox.mapboxsdk.style.layers.FillExtrusionLayer;
@@ -11,8 +9,6 @@ import com.mapbox.mapboxsdk.style.layers.LineLayer;
 import com.mapbox.mapboxsdk.style.layers.SymbolLayer;
 
 import java.util.List;
-
-import static com.mapbox.mapboxsdk.style.layers.PropertyFactory.iconSize;
 
 /**
  * Helper class to change the selected level.
