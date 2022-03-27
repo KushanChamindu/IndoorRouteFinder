@@ -1,5 +1,6 @@
 package com.example.indoorroutefinder;
 
+import android.graphics.PointF;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
@@ -8,7 +9,10 @@ import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.example.indoorroutefinder.LevelSwitch;
+import com.mapbox.geojson.Feature;
 import com.mapbox.mapboxsdk.Mapbox;
+import com.mapbox.mapboxsdk.annotations.Marker;
+import com.mapbox.mapboxsdk.annotations.MarkerOptions;
 import com.mapbox.mapboxsdk.camera.CameraPosition;
 import com.mapbox.mapboxsdk.camera.CameraUpdateFactory;
 import com.mapbox.mapboxsdk.geometry.LatLng;
@@ -56,6 +60,8 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 
         mapView = findViewById(R.id.mapView);
         mapView.getMapAsync(this);
+
+        loadPOIs();
     }
 
     @Override
@@ -91,6 +97,18 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
             @Override
             public void onClick(View view) {
                 onCalcRouteClicked();
+            }
+        });
+
+        mapboxMap.addOnMapClickListener(new MapboxMap.OnMapClickListener() {
+            @Override
+            public boolean onMapClick(@NonNull LatLng point) {
+                removeMarkers(mapboxMap);
+                Feature selectedFeature = findSelectedFeature(point);
+                PoiGeoJsonObject selectedPoi = findClickedPoi(selectedFeature);
+                createMarker(selectedPoi, selectedFeature);
+
+                return true;
             }
         });
     }
@@ -150,6 +168,91 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         }
 
         routeSource.setGeoJson(rawRouteJson);
+    }
+
+    private Feature findSelectedFeature(LatLng point) {
+        PointF screenPoint = mapboxMap.getProjection().toScreenLocation(point);
+        List<Feature> features = mapboxMap.queryRenderedFeatures(screenPoint, POI_LAYER_ID);
+        if (features != null && !features.isEmpty()) {
+            return features.get(0);
+        } else {
+            return null;
+        }
+    }
+
+    private PoiGeoJsonObject findClickedPoi(Feature selectedFeature) {
+        if (selectedFeature == null)
+            return null;
+
+        String id = selectedFeature.getStringProperty("uid");
+        for (PoiGeoJsonObject poi : pois) {
+            if (poi.uid.equals(id)) {
+                return poi;
+            }
+        }
+
+        return null;
+    }
+
+    private void createMarker(PoiGeoJsonObject selectedPoi, Feature selectedFeature) {
+        if (selectedPoi == null || selectedFeature == null)
+            return;
+
+        String typeField = selectedPoi.type;
+        AnnotationPoint selectedPOI = featureToAnnotationPoint(selectedFeature);
+
+        double lat = selectedPOI.coordinates[1];
+        double lon = selectedPOI.coordinates[0];
+        Marker marker = mapboxMap.addMarker(new MarkerOptions()
+                .position(new LatLng(lat, lon))
+                .title(typeField));
+        marker.showInfoWindow(mapboxMap, mapView);
+    }
+
+    private void removeMarkers(MapboxMap mapboxMap) {
+        List<Marker> markers = mapboxMap.getMarkers();
+        for (Marker marker : markers) {
+            mapboxMap.removeMarker(marker);
+        }
+    }
+    public void loadPOIs() {
+        String geojsonbaseURL = "https://tiles.infsoft.com/api/geoobj/json/";
+        String icid = "/en/";
+        String revision = "0";
+        String urlString = geojsonbaseURL + API_KEY + icid + revision;
+        String poiGeoJson = null;
+
+        try {
+            RestCall restCall = new RestCall();
+            poiGeoJson = restCall.execute(urlString).get();
+        } catch (ExecutionException e) {
+            e.printStackTrace();
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+
+        try {
+            ObjectMapper objectMapper = new ObjectMapper();
+            objectMapper.configure(MapperFeature.ACCEPT_CASE_INSENSITIVE_PROPERTIES, true);
+            pois = objectMapper.readValue(poiGeoJson, new TypeReference<ArrayList<PoiGeoJsonObject>>() {
+            });
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private AnnotationPoint featureToAnnotationPoint(Feature feature) {
+        Geometry geometry = feature.geometry();
+        AnnotationPoint annotationPoint = null;
+        ObjectMapper objectMapper = new ObjectMapper();
+        objectMapper.configure(MapperFeature.ACCEPT_CASE_INSENSITIVE_PROPERTIES, true);
+        try {
+            annotationPoint = objectMapper.readValue(geometry.toJson(), AnnotationPoint.class);
+        } catch (IOException e) {
+            e.printStackTrace();
+            return null;
+        }
+        return annotationPoint;
     }
     @Override
     public void onStart() {
