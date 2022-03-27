@@ -11,4 +11,6 @@
     <string name="hello_second_fragment">Hello second fragment. Arg: %1$s</string>
 
     <string name="mapbox_access_token">pk.eyJ1Ijoia3VzaGFuOTciLCJhIjoiY2t6Z29uNGR1MzRyMjJvbjlraTl0OWptYyJ9.EC2SYQqR4B8mFdWzxsQtYw</string>
+    <string name="calc_route">CALC ROUTE</string>
+    <string name="switch_level">SWITCH LEVEL</string>
 </resources>
