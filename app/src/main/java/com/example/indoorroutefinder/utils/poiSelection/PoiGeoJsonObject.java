@@ -1,4 +1,4 @@
-package com.example.indoorroutefinder;
+package com.example.indoorroutefinder.utils.poiSelection;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;

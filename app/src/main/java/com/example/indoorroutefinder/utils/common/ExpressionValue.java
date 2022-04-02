@@ -1,4 +1,4 @@
-package com.example.indoorroutefinder;
+package com.example.indoorroutefinder.utils.common;
 
 import com.mapbox.mapboxsdk.style.expressions.Expression;
 
