@@ -1,18 +1,8 @@
 package com.example.indoorroutefinder.utils.poiSelection;
 
-import static com.mapbox.mapboxsdk.style.expressions.Expression.all;
-import static com.mapbox.mapboxsdk.style.expressions.Expression.e;
-import static com.mapbox.mapboxsdk.style.expressions.Expression.eq;
-import static com.mapbox.mapboxsdk.style.expressions.Expression.geometryType;
-import static com.mapbox.mapboxsdk.style.expressions.Expression.literal;
-
-import android.graphics.BitmapFactory;
 import android.graphics.PointF;
 import android.util.Log;
 
-import com.example.indoorroutefinder.R;
-import com.example.indoorroutefinder.utils.restCall.RestCall;
-import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.MapperFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.mapbox.geojson.Feature;
@@ -23,18 +13,12 @@ import com.mapbox.mapboxsdk.geometry.LatLng;
 import com.mapbox.mapboxsdk.maps.MapView;
 import com.mapbox.mapboxsdk.maps.MapboxMap;
 import com.mapbox.mapboxsdk.maps.Style;
-import com.mapbox.mapboxsdk.plugins.annotation.SymbolManager;
-import com.mapbox.mapboxsdk.plugins.annotation.SymbolOptions;
-import com.mapbox.mapboxsdk.storage.Resource;
-import com.mapbox.mapboxsdk.style.expressions.Expression;
-import com.mapbox.mapboxsdk.style.sources.GeoJsonSource;
 
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.ExecutionException;
 
 public class POISelectionActivity {
 
@@ -75,6 +59,7 @@ public class POISelectionActivity {
 
         double lat = selectedPOI.coordinates[1];
         double lon = selectedPOI.coordinates[0];
+        Log.i("POIselect", String.valueOf(lat));
         Marker marker = mapboxMap.addMarker(new MarkerOptions()
                 .position(new LatLng(lat, lon))
                 .title(typeField));
