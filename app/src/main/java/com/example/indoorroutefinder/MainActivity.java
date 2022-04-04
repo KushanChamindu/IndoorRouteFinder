@@ -1,16 +1,19 @@
 package com.example.indoorroutefinder;
 
+import static com.mapbox.mapboxsdk.style.expressions.Expression.eq;
+import static com.mapbox.mapboxsdk.style.expressions.Expression.geometryType;
+import static com.mapbox.mapboxsdk.style.expressions.Expression.get;
+import static com.mapbox.mapboxsdk.style.expressions.Expression.literal;
 import static com.mapbox.mapboxsdk.style.layers.PropertyFactory.fillColor;
 import static com.mapbox.mapboxsdk.style.layers.PropertyFactory.fillOpacity;
-import static com.mapbox.mapboxsdk.style.layers.PropertyFactory.lineOpacity;
-import static com.mapbox.mapboxsdk.style.layers.PropertyFactory.lineWidth;
 import static com.mapbox.mapboxsdk.style.expressions.Expression.exponential;
 import static com.mapbox.mapboxsdk.style.expressions.Expression.interpolate;
 import static com.mapbox.mapboxsdk.style.expressions.Expression.stop;
 import static com.mapbox.mapboxsdk.style.expressions.Expression.zoom;
-import static com.mapbox.mapboxsdk.style.layers.PropertyFactory.lineColor;
 
 import android.content.Context;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.graphics.Color;
 import android.net.wifi.ScanResult;
 import android.net.wifi.WifiManager;
@@ -24,6 +27,7 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 
+import com.example.indoorroutefinder.utils.common.LevelSwitch;
 import com.mapbox.geojson.Point;
 import com.mapbox.mapboxsdk.Mapbox;
 import com.mapbox.mapboxsdk.camera.CameraPosition;
@@ -34,7 +38,10 @@ import com.mapbox.mapboxsdk.maps.MapboxMap;
 import com.mapbox.mapboxsdk.maps.OnMapReadyCallback;
 import com.mapbox.mapboxsdk.maps.Style;
 import com.mapbox.mapboxsdk.style.layers.FillLayer;
+import com.mapbox.mapboxsdk.style.layers.Layer;
 import com.mapbox.mapboxsdk.style.layers.LineLayer;
+import com.mapbox.mapboxsdk.style.layers.PropertyFactory;
+import com.mapbox.mapboxsdk.style.layers.SymbolLayer;
 import com.mapbox.mapboxsdk.style.sources.GeoJsonSource;
 
 import java.io.IOException;
@@ -104,7 +111,9 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         indoorBuildingSource = new GeoJsonSource(
                 "indoor-building", loadJsonFromAsset("convention_hall_lvl_0.geojson"));
         style.addSource(indoorBuildingSource);
-
+        List<Layer> layers = style.getLayers();
+        Log.i("Layers", String.valueOf(layers));
+//        LevelSwitch.updateLevel(style,0);
         loadBuildingLayer(style);
 
 //        mapboxMap.addOnMapClickListener(new MapboxMap.OnMapClickListener() {
@@ -149,6 +158,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                 currentLevel = (currentLevel + 1) % 2;
                 if (currentLevel==0){
                     indoorBuildingSource.setGeoJson(loadJsonFromAsset("convention_hall_lvl_0.geojson"));
+
                 } else {
                     indoorBuildingSource.setGeoJson(loadJsonFromAsset("map.geojson"));
                 }
@@ -223,14 +233,16 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 
         style.addLayer(indoorBuildingLayer);
 
-        LineLayer indoorBuildingLineLayer = new LineLayer("indoor-building-line", "indoor-building").withProperties(
-                lineColor(Color.parseColor("#50667f")),
-                lineWidth(0.5f),
-                lineOpacity(interpolate(exponential(1f), zoom(),
-                        stop(16f, 0f),
-                        stop(16.5f, 0.5f),
-                        stop(17f, 1f))));
+        LineLayer indoorBuildingLineLayer = new LineLayer("indoor-building-line", "indoor-building");
         style.addLayer(indoorBuildingLineLayer);
+
+        Bitmap icon = BitmapFactory.decodeResource(getResources(), R.drawable.location);
+        style.addImage("marker", icon);
+        SymbolLayer indoorBuildingSymbolLayer = new SymbolLayer("indoor-building-line-symbol", "indoor-building").withProperties(
+                PropertyFactory.iconImage("marker")
+        );
+        indoorBuildingSymbolLayer.setFilter(eq(geometryType(), literal("Point")));
+        style.addLayer(indoorBuildingSymbolLayer);
     }
 
     private void setInitialCamera(){
