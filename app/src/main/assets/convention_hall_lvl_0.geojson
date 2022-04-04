@@ -1,0 +1,270 @@
+{
+  "features": [
+    {
+      "type": "Feature",
+      "properties": {},
+      "geometry": {
+        "coordinates": [
+          [
+            79.919691,
+            6.795615
+          ],
+          [
+            79.919718,
+            6.795537
+          ]
+        ],
+        "type": "LineString"
+      },
+      "id": "0bda62529f393387f53ad81932535c46"
+    },
+    {
+      "type": "Feature",
+      "properties": {},
+      "geometry": {
+        "coordinates": [
+          [
+            79.919723,
+            6.795522
+          ],
+          [
+            79.919722,
+            6.795525
+          ]
+        ],
+        "type": "LineString"
+      },
+      "id": "0d98cbffd05df3aaa3418fb0e4e8c2c0"
+    },
+    {
+      "type": "Feature",
+      "properties": {},
+      "geometry": {
+        "coordinates": [
+          [
+            79.919705,
+            6.795575
+          ],
+          [
+            79.91978,
+            6.79559
+          ],
+          [
+            79.919785,
+            6.795573
+          ]
+        ],
+        "type": "LineString"
+      },
+      "id": "53609b0ce996b5bdf474f0e82f852a82"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "Name": "stole1_lvl_0"
+      },
+      "geometry": {
+        "coordinates": [
+          79.919745,
+          6.795557
+        ],
+        "type": "Point"
+      },
+      "id": "65a55e47fbc1d77bddd0da19e597209c"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "Name": "stole2_lvl_0"
+      },
+      "geometry": {
+        "coordinates": [
+          79.919812,
+          6.795564
+        ],
+        "type": "Point"
+      },
+      "id": "6f844c47ac42823b4e46ee9a9d1a62c1"
+    },
+    {
+      "type": "Feature",
+      "properties": {},
+      "geometry": {
+        "coordinates": [
+          [
+            79.91968,
+            6.795553
+          ],
+          [
+            79.919696,
+            6.795557
+          ]
+        ],
+        "type": "LineString"
+      },
+      "id": "7c407a185f8ae7e92ff5ac15e4d8a624"
+    },
+    {
+      "type": "Feature",
+      "properties": {},
+      "geometry": {
+        "coordinates": [
+          [
+            79.919779,
+            6.795591
+          ],
+          [
+            79.919778,
+            6.795608
+          ]
+        ],
+        "type": "LineString"
+      },
+      "id": "7ebe658ccaf93ab7031e527a386a71cb"
+    },
+    {
+      "type": "Feature",
+      "properties": {},
+      "geometry": {
+        "coordinates": [
+          [
+            79.919777,
+            6.795634
+          ],
+          [
+            79.919778,
+            6.795619
+          ]
+        ],
+        "type": "LineString"
+      },
+      "id": "87a6f0b21f63c679df6e6dd6d1d2b845"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "Name": "garden_lvl_0"
+      },
+      "geometry": {
+        "coordinates": [
+          79.919698,
+          6.79554
+        ],
+        "type": "Point"
+      },
+      "id": "87e0ede23240939b16dcee56a4c30bf2"
+    },
+    {
+      "type": "Feature",
+      "properties": {},
+      "geometry": {
+        "coordinates": [
+          [
+            79.919792,
+            6.795585
+          ],
+          [
+            79.919824,
+            6.795592
+          ]
+        ],
+        "type": "LineString"
+      },
+      "id": "9ca690dbbc1b969be95052cf08f0cff2"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "Name": "stole3_lvl_0",
+        "poi-label": "himashi's home"
+      },
+      "geometry": {
+        "coordinates": [
+          79.919802,
+          6.795619
+        ],
+        "type": "Point"
+      },
+      "id": "a71ceaad8ff81119cd912596903668b1"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "Name": "stole4_lvl_0"
+      },
+      "geometry": {
+        "coordinates": [
+          79.919729,
+          6.795608
+        ],
+        "type": "Point"
+      },
+      "id": "b6dc4125aa189c3ee8e60fac08117cb5"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "Name": "boundry"
+      },
+      "geometry": {
+        "coordinates": [
+          [
+            79.919664,
+            6.795609
+          ],
+          [
+            79.919817,
+            6.795643
+          ],
+          [
+            79.919829,
+            6.795538
+          ],
+          [
+            79.91969,
+            6.795515
+          ],
+          [
+            79.919664,
+            6.795609
+          ]
+        ],
+        "type": "LineString"
+      },
+      "id": "e007b8f7df60a02e0865d03ce8e3fc67"
+    },
+    {
+      "type": "Feature",
+      "properties": {},
+      "geometry": {
+        "coordinates": [
+          [
+            79.919789,
+            6.795561
+          ],
+          [
+            79.919796,
+            6.795534
+          ]
+        ],
+        "type": "LineString"
+      },
+      "id": "f8ee8958f3aad38a285237b84fd7bc19"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "Name": "garage_lvl_0"
+      },
+      "geometry": {
+        "coordinates": [
+          79.919684,
+          6.795585
+        ],
+        "type": "Point"
+      },
+      "id": "fa3e7472230ab4cacb0eb983ba4f99ee"
+    }
+  ],
+  "type": "FeatureCollection"
+}
