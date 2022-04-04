@@ -1,17 +1,24 @@
 package com.example.indoorroutefinder;
 
+import static com.mapbox.mapboxsdk.style.expressions.Expression.eq;
+import static com.mapbox.mapboxsdk.style.expressions.Expression.geometryType;
+import static com.mapbox.mapboxsdk.style.expressions.Expression.get;
+import static com.mapbox.mapboxsdk.style.expressions.Expression.literal;
 import static com.mapbox.mapboxsdk.style.layers.PropertyFactory.fillColor;
 import static com.mapbox.mapboxsdk.style.layers.PropertyFactory.fillOpacity;
-import static com.mapbox.mapboxsdk.style.layers.PropertyFactory.lineOpacity;
-import static com.mapbox.mapboxsdk.style.layers.PropertyFactory.lineWidth;
 import static com.mapbox.mapboxsdk.style.expressions.Expression.exponential;
 import static com.mapbox.mapboxsdk.style.expressions.Expression.interpolate;
 import static com.mapbox.mapboxsdk.style.expressions.Expression.stop;
 import static com.mapbox.mapboxsdk.style.expressions.Expression.zoom;
-import static com.mapbox.mapboxsdk.style.layers.PropertyFactory.lineColor;
 
+import android.content.Context;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.graphics.Color;
+import android.net.wifi.ScanResult;
+import android.net.wifi.WifiManager;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.view.animation.AlphaAnimation;
 import android.widget.Button;
@@ -20,22 +27,26 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 
+import com.example.indoorroutefinder.utils.common.LevelSwitch;
 import com.mapbox.geojson.Point;
-import com.mapbox.geojson.Polygon;
 import com.mapbox.mapboxsdk.Mapbox;
+import com.mapbox.mapboxsdk.camera.CameraPosition;
+import com.mapbox.mapboxsdk.camera.CameraUpdateFactory;
+import com.mapbox.mapboxsdk.geometry.LatLng;
 import com.mapbox.mapboxsdk.maps.MapView;
 import com.mapbox.mapboxsdk.maps.MapboxMap;
 import com.mapbox.mapboxsdk.maps.OnMapReadyCallback;
 import com.mapbox.mapboxsdk.maps.Style;
 import com.mapbox.mapboxsdk.style.layers.FillLayer;
+import com.mapbox.mapboxsdk.style.layers.Layer;
 import com.mapbox.mapboxsdk.style.layers.LineLayer;
+import com.mapbox.mapboxsdk.style.layers.PropertyFactory;
+import com.mapbox.mapboxsdk.style.layers.SymbolLayer;
 import com.mapbox.mapboxsdk.style.sources.GeoJsonSource;
-import com.mapbox.turf.TurfJoins;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
 import java.util.List;
 
 public class MainActivity extends AppCompatActivity implements OnMapReadyCallback, Style.OnStyleLoaded {
@@ -62,7 +73,6 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         setContentView(R.layout.activity_main);
 
         mapView = findViewById(R.id.mapView);
-//        mapView.onCreate(savedInstanceState);
         mapView.getMapAsync(this);
 
 //        POISelectionActivity.loadPOIs(API_KEY);
@@ -84,42 +94,27 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         this.loadedStyle = style;
         levelButtons = findViewById(R.id.floor_level_buttons);
 
-        final List<Point> boundingBox = new ArrayList<>();
-
-        boundingBox.add(Point.fromLngLat(-77.03791, 38.89715));
-        boundingBox.add(Point.fromLngLat(-77.03791, 38.89811));
-        boundingBox.add(Point.fromLngLat(-77.03532, 38.89811));
-        boundingBox.add(Point.fromLngLat(-77.03532, 38.89708));
-
-        boundingBoxList = new ArrayList<>();
-        boundingBoxList.add(boundingBox);
+//        final List<Point> boundingBox = new ArrayList<>();
+//
+//        boundingBox.add(Point.fromLngLat(79.91980388760567,6.795640228656255));
+//        boundingBox.add(Point.fromLngLat(79.91982266306877,6.795542349975353));
+//        boundingBox.add(Point.fromLngLat(79.91969928145409,6.795500401963159));
+//        boundingBox.add(Point.fromLngLat(79.91967715322971,6.795608934114187));
+//
+//        boundingBoxList = new ArrayList<>();
+//        boundingBoxList.add(boundingBox);
 
         // LevelSwitch.updateLevel(style,0);
         // DisplayRouteActivity.initSource(style);
-        // setInitialCamera();
+        setInitialCamera();
 
-        Button levelSwitch = findViewById(R.id.switchLevelButton);
-        Button routeButton = findViewById(R.id.calcRouteButton);
-
-        levelSwitch.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                currentLevel = (currentLevel + 1) % 2;
-                if (currentLevel==0){
-                    indoorBuildingSource.setGeoJson(loadJsonFromAsset("white_house_lvl_0.geojson"));
-                } else {
-                    indoorBuildingSource.setGeoJson(loadJsonFromAsset("white_house_lvl_1.geojson"));
-                }
-                // LevelSwitch.updateLevel(loadedStyle, currentLevel);
-            }
-        });
-
-        routeButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                // DisplayRouteActivity.onCalcRouteClicked(API_KEY);
-            }
-        });
+        indoorBuildingSource = new GeoJsonSource(
+                "indoor-building", loadJsonFromAsset("convention_hall_lvl_0.geojson"));
+        style.addSource(indoorBuildingSource);
+        List<Layer> layers = style.getLayers();
+        Log.i("Layers", String.valueOf(layers));
+//        LevelSwitch.updateLevel(style,0);
+        loadBuildingLayer(style);
 
 //        mapboxMap.addOnMapClickListener(new MapboxMap.OnMapClickListener() {
 //            @Override
@@ -133,31 +128,61 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 //            }
 //        });
 
-        mapboxMap.addOnCameraMoveListener(new MapboxMap.OnCameraMoveListener() {
+//        mapboxMap.addOnCameraMoveListener(new MapboxMap.OnCameraMoveListener() {
+//            @Override
+//            public void onCameraMove() {
+//                if (mapboxMap.getCameraPosition().zoom > 16) {
+//                    if (TurfJoins.inside(Point.fromLngLat(mapboxMap.getCameraPosition().target.getLongitude(),
+//                            mapboxMap.getCameraPosition().target.getLatitude()), Polygon.fromLngLats(boundingBoxList))) {
+//                        if (levelButtons.getVisibility() != View.VISIBLE) {
+//                            showLevelButton();
+//                        }
+//                    } else {
+//                        if (levelButtons.getVisibility() == View.VISIBLE) {
+//                            hideLevelButton();
+//                        }
+//                    }
+//                } else if (levelButtons.getVisibility() == View.VISIBLE) {
+//                    hideLevelButton();
+//                }
+//            }
+//        });
+
+        Button levelSwitch = findViewById(R.id.switchLevelButton);
+        Button routeButton = findViewById(R.id.calcRouteButton);
+        Button initButton = findViewById(R.id.initButton);
+
+        levelSwitch.setOnClickListener(new View.OnClickListener() {
             @Override
-            public void onCameraMove() {
-                if (mapboxMap.getCameraPosition().zoom > 16) {
-                    if (TurfJoins.inside(Point.fromLngLat(mapboxMap.getCameraPosition().target.getLongitude(),
-                            mapboxMap.getCameraPosition().target.getLatitude()), Polygon.fromLngLats(boundingBoxList))) {
-                        if (levelButtons.getVisibility() != View.VISIBLE) {
-                            showLevelButton();
-                        }
-                    } else {
-                        if (levelButtons.getVisibility() == View.VISIBLE) {
-                            hideLevelButton();
-                        }
-                    }
-                } else if (levelButtons.getVisibility() == View.VISIBLE) {
-                    hideLevelButton();
+            public void onClick(View view) {
+                currentLevel = (currentLevel + 1) % 2;
+                if (currentLevel==0){
+                    indoorBuildingSource.setGeoJson(loadJsonFromAsset("convention_hall_lvl_0.geojson"));
+
+                } else {
+                    indoorBuildingSource.setGeoJson(loadJsonFromAsset("map.geojson"));
                 }
+                // LevelSwitch.updateLevel(loadedStyle, currentLevel);
             }
         });
 
-        indoorBuildingSource = new GeoJsonSource(
-                "indoor-building", loadJsonFromAsset("white_house_lvl_0.geojson"));
-        style.addSource(indoorBuildingSource);
+        routeButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                // DisplayRouteActivity.onCalcRouteClicked(API_KEY);
+                WifiManager wifiManager = (WifiManager) getApplicationContext().getSystemService(Context.WIFI_SERVICE);
+                List<ScanResult> results = wifiManager.getScanResults();
+                // int level = getPowerPercentage(results.get(0).level);
+                Log.i("wifi", String.valueOf(results));
+            }
+        });
 
-        loadBuildingLayer(style);
+        initButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                setInitialCamera();
+            }
+        });
     }
 
     private void hideLevelButton() {
@@ -208,25 +233,27 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 
         style.addLayer(indoorBuildingLayer);
 
-        LineLayer indoorBuildingLineLayer = new LineLayer("indoor-building-line", "indoor-building").withProperties(
-                lineColor(Color.parseColor("#50667f")),
-                lineWidth(0.5f),
-                lineOpacity(interpolate(exponential(1f), zoom(),
-                        stop(16f, 0f),
-                        stop(16.5f, 0.5f),
-                        stop(17f, 1f))));
+        LineLayer indoorBuildingLineLayer = new LineLayer("indoor-building-line", "indoor-building");
         style.addLayer(indoorBuildingLineLayer);
+
+        Bitmap icon = BitmapFactory.decodeResource(getResources(), R.drawable.location);
+        style.addImage("marker", icon);
+        SymbolLayer indoorBuildingSymbolLayer = new SymbolLayer("indoor-building-line-symbol", "indoor-building").withProperties(
+                PropertyFactory.iconImage("marker")
+        );
+        indoorBuildingSymbolLayer.setFilter(eq(geometryType(), literal("Point")));
+        style.addLayer(indoorBuildingSymbolLayer);
     }
 
-//    private void setInitialCamera(){
-//        CameraPosition cameraPosition = new CameraPosition.Builder()
-//                .target(new LatLng(49.867630660511715, 10.89075028896332)) // Sets the new camera position
-//                .zoom(18) // Sets the zoom
-//                .bearing(0) // Rotate the camera
-//                .tilt(45) // Set the camera tilt
-//                .build();
-//        this.mapboxMap.animateCamera(CameraUpdateFactory.newCameraPosition(cameraPosition));
-//    }
+    private void setInitialCamera(){
+        CameraPosition cameraPosition = new CameraPosition.Builder()
+                .target(new LatLng(6.795577, 79.91975)) // Sets the new camera position
+                .zoom(21.3) // Sets the zoom
+                .bearing(80) // Rotate the camera
+                .tilt(0) // Set the camera tilt
+                .build();
+        this.mapboxMap.animateCamera(CameraUpdateFactory.newCameraPosition(cameraPosition));
+    }
 
     @Override
     public void onStart() {
