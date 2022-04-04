@@ -20,14 +20,13 @@ import android.net.wifi.WifiManager;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
-import android.view.animation.AlphaAnimation;
 import android.widget.Button;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 
-import com.example.indoorroutefinder.utils.common.LevelSwitch;
 import com.example.indoorroutefinder.utils.poiSelection.POISelectionActivity;
 import com.example.indoorroutefinder.utils.poiSelection.PoiGeoJsonObject;
 import com.mapbox.geojson.Feature;
@@ -40,8 +39,10 @@ import com.mapbox.mapboxsdk.maps.MapView;
 import com.mapbox.mapboxsdk.maps.MapboxMap;
 import com.mapbox.mapboxsdk.maps.OnMapReadyCallback;
 import com.mapbox.mapboxsdk.maps.Style;
+import com.mapbox.mapboxsdk.plugins.annotation.OnSymbolClickListener;
+import com.mapbox.mapboxsdk.plugins.annotation.Symbol;
+import com.mapbox.mapboxsdk.plugins.annotation.SymbolManager;
 import com.mapbox.mapboxsdk.style.layers.FillLayer;
-import com.mapbox.mapboxsdk.style.layers.Layer;
 import com.mapbox.mapboxsdk.style.layers.LineLayer;
 import com.mapbox.mapboxsdk.style.layers.PropertyFactory;
 import com.mapbox.mapboxsdk.style.layers.SymbolLayer;
@@ -116,11 +117,15 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         mapboxMap.addOnMapClickListener(new MapboxMap.OnMapClickListener() {
             @Override
             public boolean onMapClick(@NonNull LatLng point) {
-                POISelectionActivity.removeMarkers(mapboxMap);
                 Feature selectedFeature = POISelectionActivity.findSelectedFeature(mapboxMap, point);
                 PoiGeoJsonObject selectedPoi = POISelectionActivity.findClickedPoi(selectedFeature);
-                POISelectionActivity.createMarker(mapView, mapboxMap, selectedPoi, selectedFeature);
-
+                if(selectedFeature != null) {
+                    POISelectionActivity.removeMarkers(mapboxMap);
+                }
+//                Log.i("POISelect", String.valueOf(selectedFeature));
+//                Log.i("POISelect", String.valueOf(selectedPoi));
+                POISelectionActivity.createMarker(mapView, mapboxMap, loadedStyle,getResources(),selectedPoi, selectedFeature);
+//                return true;
                 return true;
             }
         });
