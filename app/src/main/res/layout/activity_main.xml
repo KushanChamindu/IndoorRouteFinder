@@ -20,20 +20,20 @@
             android:layout_margin="16dp"
             android:orientation="vertical">
 
-            <Button
-                android:id="@+id/switchLevelButton"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_gravity="right|top"
-                android:orientation="vertical"
-                android:shadowRadius="100"
-                android:text="@string/switch_level"
-                android:textColor="#F3F0F0"
-                tools:ignore="RtlHardcoded"
-                tools:layout_conversion_absoluteHeight="48dp"
-                tools:layout_conversion_absoluteWidth="143dp"
-                tools:layout_editor_absoluteX="15dp"
-                tools:layout_editor_absoluteY="15dp" />
+<!--            <Button-->
+<!--                android:id="@+id/switchLevelButton"-->
+<!--                android:layout_width="wrap_content"-->
+<!--                android:layout_height="wrap_content"-->
+<!--                android:layout_gravity="right|top"-->
+<!--                android:orientation="vertical"-->
+<!--                android:shadowRadius="100"-->
+<!--                android:text="@string/switch_level"-->
+<!--                android:textColor="#F3F0F0"-->
+<!--                tools:ignore="RtlHardcoded"-->
+<!--                tools:layout_conversion_absoluteHeight="48dp"-->
+<!--                tools:layout_conversion_absoluteWidth="143dp"-->
+<!--                tools:layout_editor_absoluteX="15dp"-->
+<!--                tools:layout_editor_absoluteY="15dp" />-->
 
             <Button
                 android:id="@+id/calcRouteButton"

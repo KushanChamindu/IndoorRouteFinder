@@ -1,6 +1,13 @@
 package com.example.indoorroutefinder.utils.poiSelection;
 
+import static com.mapbox.mapboxsdk.style.expressions.Expression.all;
+import static com.mapbox.mapboxsdk.style.expressions.Expression.e;
+import static com.mapbox.mapboxsdk.style.expressions.Expression.eq;
+import static com.mapbox.mapboxsdk.style.expressions.Expression.geometryType;
+import static com.mapbox.mapboxsdk.style.expressions.Expression.literal;
+
 import android.graphics.PointF;
+import android.util.Log;
 
 import com.example.indoorroutefinder.utils.restCall.RestCall;
 import com.fasterxml.jackson.core.type.TypeReference;
@@ -13,10 +20,14 @@ import com.mapbox.mapboxsdk.annotations.MarkerOptions;
 import com.mapbox.mapboxsdk.geometry.LatLng;
 import com.mapbox.mapboxsdk.maps.MapView;
 import com.mapbox.mapboxsdk.maps.MapboxMap;
+import com.mapbox.mapboxsdk.style.expressions.Expression;
+import com.mapbox.mapboxsdk.style.sources.GeoJsonSource;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.ExecutionException;
 
 public class POISelectionActivity {
@@ -38,9 +49,9 @@ public class POISelectionActivity {
         if (selectedFeature == null)
             return null;
 
-        String id = selectedFeature.getStringProperty("uid");
+        String id = selectedFeature.getStringProperty("id");
         for (PoiGeoJsonObject poi : pois) {
-            if (poi.uid.equals(id)) {
+            if (poi.id.equals(id)) {
                 return poi;
             }
         }
@@ -70,25 +81,25 @@ public class POISelectionActivity {
         }
     }
 
-    public static void loadPOIs(String API_KEY) {
-        String geojsonbaseURL = "https://tiles.infsoft.com/api/geoobj/json/";
-        String icid = "/en/";
-        String revision = "0";
-        String urlString = geojsonbaseURL + API_KEY + icid + revision;
-        String poiGeoJson = null;
+    public static void loadPOIs(String geoJsonSource) {
+//        Log.i("POIselection", String.valueOf(geoJsonSource));
+//        List<Feature> poiGeoJson = geoJsonSource.querySourceFeatures(Expression.all());
+//        Log.i("POIselection", String.valueOf(geoJsonSource));
+        ObjectMapper objectMapper = new ObjectMapper();
+        objectMapper.configure(MapperFeature.ACCEPT_CASE_INSENSITIVE_PROPERTIES, true);
+
 
         try {
-            RestCall restCall = new RestCall();
-            poiGeoJson = restCall.execute(urlString).get();
-        } catch (ExecutionException | InterruptedException e) {
-            e.printStackTrace();
-        }
-
-        try {
-            ObjectMapper objectMapper = new ObjectMapper();
-            objectMapper.configure(MapperFeature.ACCEPT_CASE_INSENSITIVE_PROPERTIES, true);
-            pois = objectMapper.readValue(poiGeoJson, new TypeReference<ArrayList<PoiGeoJsonObject>>() {
-            });
+            Map<String, ArrayList<LinkedHashMap>> map = objectMapper.readValue(geoJsonSource, Map.class);
+            ArrayList<LinkedHashMap> pointers = map.get("features");
+            pois = new ArrayList<PoiGeoJsonObject>();
+            for (LinkedHashMap pointer : pointers) {
+                LinkedHashMap geometry = (LinkedHashMap) pointer.get("geometry");
+                if (geometry.get("type").equals("Point")) {
+                    pois.add(new PoiGeoJsonObject((String) pointer.get("id"), (String) geometry.get("type"), (LinkedHashMap<String, String>) pointer.get("properties"), (ArrayList<String>) geometry.get("coordinates")));
+                }
+            }
+            Log.i("POIselection", String.valueOf(pois));
         } catch (IOException e) {
             e.printStackTrace();
         }
