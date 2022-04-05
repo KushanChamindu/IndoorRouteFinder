@@ -9,6 +9,7 @@ import androidx.annotation.RequiresApi;
 import com.example.indoorroutefinder.utils.poiSelection.PoiGeoJsonObject;
 import com.fasterxml.jackson.databind.MapperFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.mapbox.mapboxsdk.annotations.Polyline;
 import com.mapbox.mapboxsdk.annotations.PolylineOptions;
 import com.mapbox.mapboxsdk.geometry.LatLng;
 import com.mapbox.mapboxsdk.maps.MapboxMap;
@@ -25,7 +26,7 @@ public class NavigationActivity {
     private static Map<String, PoiGeoJsonObject> poiList = null;
     private static final int verticesCount = 13;
     private static final ArrayList<ArrayList<Integer>> edges = new ArrayList<>(verticesCount);
-
+    private static Polyline polyline = null;
 
     public static void initNav(String geoJsonSource) {
         loadPOIs(geoJsonSource);
@@ -70,17 +71,16 @@ public class NavigationActivity {
         edges.get(j).add(i);
     }
 
-    @RequiresApi(api = Build.VERSION_CODES.N)
-    public static void getShortestPath(int s, int dest, MapboxMap mapboxMap) {
+    private static LinkedHashMap<String, ArrayList<String>> getShortestPath(int src, int dest) {
         // predecessor[i] array stores predecessor of
         // i and distance array stores distance of i
         // from s
         int[] predecessor = new int[verticesCount];
         int[] distance = new int[verticesCount];
 
-        if (!BFS(s, dest, predecessor, distance)) {
+        if (!BFS(src, dest, predecessor, distance)) {
             Log.i("Info", "Given source and destination are not connected");
-            return;
+            return null;
         }
 
         // LinkedList to store path
@@ -105,18 +105,32 @@ public class NavigationActivity {
                 finalPath.put(key, entry.getValue().coordinates);
             }
         }
-        ArrayList<LatLng> points = finalPath.values().stream().map(point -> new LatLng(
-                Double.parseDouble(String.valueOf(point.get(1))),
-                Double.parseDouble(String.valueOf(point.get(0)))
-        )).collect(Collectors.toCollection(ArrayList::new));
+        return finalPath;
+    }
 
-        // Log path
-        Log.i("Path is", String.valueOf(finalPath));
-        // add polyline to MapboxMap object
-        mapboxMap.addPolyline(new PolylineOptions()
-                .addAll(points)
-                .color(Color.RED)
-                .width(3f));
+    @RequiresApi(api = Build.VERSION_CODES.N)
+    public static void displayRoute(int src, int dest, MapboxMap mapboxMap){
+        // remove any existing polyline
+        if (polyline != null) {
+            mapboxMap.removePolyline(polyline);
+            polyline = null;
+        }
+        if (src != dest) {
+            LinkedHashMap<String, ArrayList<String>> finalPath = getShortestPath(src, dest);
+            ArrayList<LatLng> points = finalPath.values().stream().map(point -> new LatLng(
+                    Double.parseDouble(String.valueOf(point.get(1))),
+                    Double.parseDouble(String.valueOf(point.get(0)))
+            )).collect(Collectors.toCollection(ArrayList::new));
+
+            // Log path
+            Log.i("Path is", String.valueOf(finalPath));
+
+            // add polyline to MapboxMap object
+            polyline = mapboxMap.addPolyline(new PolylineOptions()
+                    .addAll(points)
+                    .color(Color.RED)
+                    .width(3f));
+        }
     }
 
     private static boolean BFS(int src, int dest, int[] predecessor, int[] dist) {

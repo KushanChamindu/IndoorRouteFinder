@@ -13,6 +13,8 @@ import com.mapbox.mapboxsdk.geometry.LatLng;
 import com.mapbox.mapboxsdk.maps.MapView;
 import com.mapbox.mapboxsdk.maps.MapboxMap;
 import com.mapbox.mapboxsdk.maps.Style;
+import com.mapbox.mapboxsdk.plugins.annotation.SymbolManager;
+import com.mapbox.mapboxsdk.plugins.annotation.SymbolOptions;
 import com.mapbox.mapboxsdk.style.expressions.Expression;
 
 import java.io.IOException;
@@ -23,90 +25,97 @@ import java.util.Map;
 
 public class POISelectionActivity {
 
-    private static final String POI_LAYER_ID = "indoor-building-line-symbol";
-    private static List<PoiGeoJsonObject> pois = null;
+//    public static Feature findSelectedFeature(MapboxMap mapboxMap, LatLng point) {
+//        PointF screenPoint = mapboxMap.getProjection().toScreenLocation(point);
+//        List<Feature> features = mapboxMap.queryRenderedFeatures(screenPoint, POI_LAYER_ID);
+//        if (features != null && !features.isEmpty()) {
+//            return features.get(0);
+//        } else {
+//            return null;
+//        }
+//    }
 
-    public static Feature findSelectedFeature(MapboxMap mapboxMap, LatLng point) {
-        PointF screenPoint = mapboxMap.getProjection().toScreenLocation(point);
-        List<Feature> features = mapboxMap.queryRenderedFeatures(screenPoint, POI_LAYER_ID);
-        if (features != null && !features.isEmpty()) {
-            return features.get(0);
-        } else {
-            return null;
-        }
-    }
+//    public static PoiGeoJsonObject findClickedPoi(Feature selectedFeature) {
+//        if (selectedFeature == null)
+//            return null;
+//
+//        String id = selectedFeature.id();
+//        for (PoiGeoJsonObject poi : pois) {
+//            if (poi.id.equals(id)) {
+//                return poi;
+//            }
+//        }
+//
+//        return null;
+//    }
 
-    public static PoiGeoJsonObject findClickedPoi(Feature selectedFeature) {
-        if (selectedFeature == null)
-            return null;
+//    public static void createMarker(MapView mapView, MapboxMap mapboxMap, Style style,
+//                                    android.content.res.Resources resource, PoiGeoJsonObject selectedPoi, Feature selectedFeature) {
+//        if (selectedPoi == null || selectedFeature == null)
+//            return;
+//
+//        String typeField = selectedPoi.props.get("Name");
+//        AnnotationPoint selectedPOI = featureToAnnotationPoint(selectedFeature);
+//
+//        double lat = selectedPOI.coordinates[1];
+//        double lon = selectedPOI.coordinates[0];
+//        Log.i("POIselect", String.valueOf(lat));
+//        Marker marker = mapboxMap.addMarker(new MarkerOptions()
+//                .position(new LatLng(lat, lon))
+//                .title(typeField));
+//        marker.showInfoWindow(mapboxMap, mapView);
+//    }
 
-        String id = selectedFeature.id();
-        for (PoiGeoJsonObject poi : pois) {
-            if (poi.id.equals(id)) {
-                return poi;
-            }
-        }
+//    public static void removeMarkers(MapboxMap mapboxMap) {
+//        List<Marker> markers = mapboxMap.getMarkers();
+//        for (Marker marker : markers) {
+//            Log.i("POISelect", String.valueOf(marker.getTitle()));
+//                mapboxMap.removeMarker(marker);
+//
+//        }
+//    }
 
-        return null;
-    }
-
-    public static void createMarker(MapView mapView, MapboxMap mapboxMap, Style style,
-                                    android.content.res.Resources resource, PoiGeoJsonObject selectedPoi, Feature selectedFeature) {
-        if (selectedPoi == null || selectedFeature == null)
-            return;
-
-        String typeField = selectedPoi.props.get("Name");
-        AnnotationPoint selectedPOI = featureToAnnotationPoint(selectedFeature);
-
-        double lat = selectedPOI.coordinates[1];
-        double lon = selectedPOI.coordinates[0];
-        Log.i("POIselect", String.valueOf(lat));
-        Marker marker = mapboxMap.addMarker(new MarkerOptions()
-                .position(new LatLng(lat, lon))
-                .title(typeField));
-        marker.showInfoWindow(mapboxMap, mapView);
-    }
-
-    public static void removeMarkers(MapboxMap mapboxMap) {
-        List<Marker> markers = mapboxMap.getMarkers();
-        for (Marker marker : markers) {
-            Log.i("POISelect", String.valueOf(marker.getTitle()));
-                mapboxMap.removeMarker(marker);
-
-        }
-    }
-
-    public static void loadPOIs(String geoJsonSource) {
+    public static List<PoiGeoJsonObject> loadPOIs(String geoJsonSource, SymbolManager symbolManager) {
         ObjectMapper objectMapper = new ObjectMapper();
         objectMapper.configure(MapperFeature.ACCEPT_CASE_INSENSITIVE_PROPERTIES, true);
-
+        List<PoiGeoJsonObject> poiList = null;
         try {
             Map<String, ArrayList<LinkedHashMap>> map = objectMapper.readValue(geoJsonSource, Map.class);
             ArrayList<LinkedHashMap> pointers = map.get("features");
-            pois = new ArrayList<PoiGeoJsonObject>();
+            poiList = new ArrayList<PoiGeoJsonObject>();
             for (LinkedHashMap pointer : pointers) {
                 LinkedHashMap geometry = (LinkedHashMap) pointer.get("geometry");
                 LinkedHashMap properties = (LinkedHashMap) pointer.get("properties");
+                ArrayList<String> coordinates = (ArrayList<String>) geometry.get("coordinates");
                 if (properties.get("point-type")!= null && properties.get("point-type").equals("stole")) {
-                    pois.add(new PoiGeoJsonObject((String) pointer.get("id"), (String) geometry.get("type"), (LinkedHashMap<String, String>) pointer.get("properties"), (ArrayList<String>) geometry.get("coordinates")));
+                    poiList.add(new PoiGeoJsonObject((String) pointer.get("id"), (String) geometry.get("type"), (LinkedHashMap<String, String>) pointer.get("properties"), coordinates));
+                    Log.i("Print", String.valueOf(coordinates));
+                    symbolManager.create(new SymbolOptions()
+                            .withLatLng(new LatLng(Double.parseDouble(String.valueOf(coordinates.get(1))), Double.parseDouble(String.valueOf(coordinates.get(0)))))
+                            .withIconImage("marker")
+                            .withTextField((String) properties.get("Name"))
+                            .withTextAnchor("top")
+                            .withTextOffset(new Float[] {0f, 1.5f})
+                    );
                 }
             }
         } catch (IOException e) {
             e.printStackTrace();
         }
+        return poiList;
     }
 
-    private static AnnotationPoint featureToAnnotationPoint(Feature feature) {
-        Geometry geometry = feature.geometry();
-        AnnotationPoint annotationPoint = null;
-        ObjectMapper objectMapper = new ObjectMapper();
-        objectMapper.configure(MapperFeature.ACCEPT_CASE_INSENSITIVE_PROPERTIES, true);
-        try {
-            annotationPoint = objectMapper.readValue(geometry.toJson(), AnnotationPoint.class);
-        } catch (IOException e) {
-            e.printStackTrace();
-            return null;
-        }
-        return annotationPoint;
-    }
+//    private static AnnotationPoint featureToAnnotationPoint(Feature feature) {
+//        Geometry geometry = feature.geometry();
+//        AnnotationPoint annotationPoint = null;
+//        ObjectMapper objectMapper = new ObjectMapper();
+//        objectMapper.configure(MapperFeature.ACCEPT_CASE_INSENSITIVE_PROPERTIES, true);
+//        try {
+//            annotationPoint = objectMapper.readValue(geometry.toJson(), AnnotationPoint.class);
+//        } catch (IOException e) {
+//            e.printStackTrace();
+//            return null;
+//        }
+//        return annotationPoint;
+//    }
 }
