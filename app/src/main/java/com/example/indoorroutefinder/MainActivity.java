@@ -2,7 +2,9 @@ package com.example.indoorroutefinder;
 
 import static com.mapbox.mapboxsdk.style.expressions.Expression.eq;
 import static com.mapbox.mapboxsdk.style.expressions.Expression.geometryType;
+import static com.mapbox.mapboxsdk.style.expressions.Expression.get;
 import static com.mapbox.mapboxsdk.style.expressions.Expression.literal;
+import static com.mapbox.mapboxsdk.style.expressions.Expression.properties;
 import static com.mapbox.mapboxsdk.style.layers.PropertyFactory.fillColor;
 import static com.mapbox.mapboxsdk.style.layers.PropertyFactory.fillOpacity;
 import static com.mapbox.mapboxsdk.style.expressions.Expression.exponential;
@@ -24,6 +26,7 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 
+import com.example.indoorroutefinder.utils.Nav.Navigation;
 import com.example.indoorroutefinder.utils.poiSelection.POISelectionActivity;
 import com.example.indoorroutefinder.utils.poiSelection.PoiGeoJsonObject;
 import com.mapbox.geojson.Feature;
@@ -56,7 +59,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     private Style loadedStyle;
 //    private View levelButtons;
     private int currentLevel = 0;
-    private final String goeFileName = "convention_hall_lvl_0.geojson";
+    private final String goeFileName = "convention_hall_lvl_0_Nav_1.geojson";
 
     // private final String STYLE_URL = "https://tilesservices.webservices.infsoft.com/api/mapstyle/style/";
     // private final String API_KEY = "8c97d7c6-0c3a-41de-b67a-fb7628efba79";
@@ -85,28 +88,11 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     @Override
     public void onStyleLoaded(@NonNull Style style) {
         this.loadedStyle = style;
-//        levelButtons = findViewById(R.id.floor_level_buttons);
-
-//        final List<Point> boundingBox = new ArrayList<>();
-//
-//        boundingBox.add(Point.fromLngLat(79.91980388760567,6.795640228656255));
-//        boundingBox.add(Point.fromLngLat(79.91982266306877,6.795542349975353));
-//        boundingBox.add(Point.fromLngLat(79.91969928145409,6.795500401963159));
-//        boundingBox.add(Point.fromLngLat(79.91967715322971,6.795608934114187));
-//
-//        boundingBoxList = new ArrayList<>();
-//        boundingBoxList.add(boundingBox);
-
-        // LevelSwitch.updateLevel(style,0);
-        // DisplayRouteActivity.initSource(style);
         setInitialCamera();
         indoorBuildingSource = new GeoJsonSource(
                 "indoor-building", loadJsonFromAsset(goeFileName));
         POISelectionActivity.loadPOIs(loadJsonFromAsset(goeFileName));
         this.loadedStyle.addSource(indoorBuildingSource);
-//        List<Layer> layers = style.getLayers();
-//        Log.i("Layers", String.valueOf(layers));
-//        LevelSwitch.updateLevel(style,0);
         loadBuildingLayer(this.loadedStyle);
         mapboxMap.addOnMapClickListener(new MapboxMap.OnMapClickListener() {
             @Override
@@ -176,6 +162,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                 setInitialCamera();
             }
         });
+        Navigation.initNav(loadJsonFromAsset(goeFileName));
     }
 
 //    private void hideLevelButton() {
@@ -234,7 +221,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         SymbolLayer indoorBuildingSymbolLayer = new SymbolLayer("indoor-building-line-symbol", "indoor-building").withProperties(
                 PropertyFactory.iconImage("marker")
         );
-        indoorBuildingSymbolLayer.setFilter(eq(geometryType(), literal("Point")));
+        indoorBuildingSymbolLayer.setFilter(eq(get("point-type"), literal("stole")));
         style.addLayer(indoorBuildingSymbolLayer);
     }
 

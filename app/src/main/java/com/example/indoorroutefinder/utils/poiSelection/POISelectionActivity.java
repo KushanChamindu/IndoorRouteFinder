@@ -13,6 +13,7 @@ import com.mapbox.mapboxsdk.geometry.LatLng;
 import com.mapbox.mapboxsdk.maps.MapView;
 import com.mapbox.mapboxsdk.maps.MapboxMap;
 import com.mapbox.mapboxsdk.maps.Style;
+import com.mapbox.mapboxsdk.style.expressions.Expression;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -85,7 +86,8 @@ public class POISelectionActivity {
             pois = new ArrayList<PoiGeoJsonObject>();
             for (LinkedHashMap pointer : pointers) {
                 LinkedHashMap geometry = (LinkedHashMap) pointer.get("geometry");
-                if (geometry.get("type").equals("Point")) {
+                LinkedHashMap properties = (LinkedHashMap) pointer.get("properties");
+                if (properties.get("point-type")!= null && properties.get("point-type").equals("stole")) {
                     pois.add(new PoiGeoJsonObject((String) pointer.get("id"), (String) geometry.get("type"), (LinkedHashMap<String, String>) pointer.get("properties"), (ArrayList<String>) geometry.get("coordinates")));
                 }
             }
