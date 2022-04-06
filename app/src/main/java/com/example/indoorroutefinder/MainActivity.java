@@ -35,6 +35,8 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     private SymbolManager symbolManager;
     private static List<PoiGeoJsonObject> poiList = null;
     private Button routeButton;
+    private Button initButton;
+    private TextView txtView;
     private int destination;
 
     @Override
@@ -57,7 +59,8 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     public void onStyleLoaded(@NonNull Style style) {
         this.loadedStyle = style;
         routeButton = findViewById(R.id.calcRouteButton);
-        Button initButton = findViewById(R.id.initButton);
+        initButton = findViewById(R.id.initButton);
+        txtView = findViewById(R.id.stoleText);
 
         MapSetupActivity.setInitialCamera(mapboxMap);
         GeoJsonSource indoorBuildingSource = new GeoJsonSource("indoor-building", MapSetupActivity.loadJsonFromAsset(goeFileName, getAssets()));
@@ -102,7 +105,8 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                 routeButton.setText(R.string.cancel_route);
             } else {
                 NavigationActivity.removeRoute(mapboxMap);
-                routeButton.setText(R.string.calc_route);
+                MapSetupActivity.hideView(routeButton);
+                txtView.setText("");
                 POISelectionActivity.toggleMarker(null, symbolManager);
             }
         });
@@ -125,8 +129,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                 routeButton.setText(R.string.calc_route);
             }
             NavigationActivity.removeRoute(mapboxMap);
-            TextView txt = findViewById(R.id.stoleText);
-            txt.setText(symbol.getTextField());
+            txtView.setText(symbol.getTextField());
             // Toast.makeText(getApplicationContext(), "Displaying route to " + symbol.getTextField(), Toast.LENGTH_SHORT).show();
             PoiGeoJsonObject poi = poiList.stream().filter(obj ->
                     String.valueOf(obj.coordinates.get(0)).equals(String.valueOf(symbol.getGeometry().longitude()))

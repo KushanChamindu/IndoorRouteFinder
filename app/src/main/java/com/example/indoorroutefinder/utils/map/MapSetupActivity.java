@@ -102,7 +102,7 @@ public class MapSetupActivity {
         AlphaAnimation animation = new AlphaAnimation(1.0f, 0.0f);
         animation.setDuration(500);
         button.startAnimation(animation);
-        button.setVisibility(View.GONE);
+        button.setVisibility(View.INVISIBLE);
     }
 
     public static void showView(View button) {

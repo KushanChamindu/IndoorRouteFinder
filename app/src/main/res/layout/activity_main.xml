@@ -45,7 +45,7 @@
                 android:paddingTop="3dp"
                 android:paddingRight="5dp"
                 android:paddingBottom="3dp"
-                android:text="stole_1_lvl_0"
+                android:text=""
                 android:textAlignment="center"
                 android:textAllCaps="false"
                 android:textColor="#090909"
@@ -64,7 +64,7 @@
                 android:text="@string/calc_route"
                 android:textColor="#FBFBFB"
                 android:textSize="12sp"
-                android:visibility="visible"
+                android:visibility="invisible"
                 tools:ignore="RtlHardcoded" />
 
             <Button
