@@ -23,13 +23,13 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 public class NavigationActivity {
-    private static Map<String, PoiGeoJsonObject> poiList = null;
+    private static Map<String, PoiGeoJsonObject> navPointList = null;
     private static final int verticesCount = 13;
     private static final ArrayList<ArrayList<Integer>> edges = new ArrayList<>(verticesCount);
     private static Polyline polyline = null;
 
     public static void initNav(String geoJsonSource) {
-        loadPOIs(geoJsonSource);
+        loadNavPoints(geoJsonSource);
 
         for (int i = 1; i < verticesCount; i++) {
             edges.add(new ArrayList<>());
@@ -47,18 +47,18 @@ public class NavigationActivity {
         addEdge(10, 11);
     }
 
-    private static void loadPOIs(String geoJsonSource) {
+    private static void loadNavPoints(String geoJsonSource) {
         ObjectMapper objectMapper = new ObjectMapper();
         objectMapper.configure(MapperFeature.ACCEPT_CASE_INSENSITIVE_PROPERTIES, true);
 
         try {
             Map<String, ArrayList<LinkedHashMap>> map = objectMapper.readValue(geoJsonSource, Map.class);
             ArrayList<LinkedHashMap> pointers = map.get("features");
-            poiList = new HashMap<>();
+            navPointList = new HashMap<>();
             for (LinkedHashMap pointer : pointers) {
                 LinkedHashMap geometry = (LinkedHashMap) pointer.get("geometry");
                 if (geometry.get("type").equals("Point")) {
-                    poiList.put((String) pointer.get("id"), new PoiGeoJsonObject((String) pointer.get("id"), (String) geometry.get("type"), (LinkedHashMap<String, String>) pointer.get("properties"), (ArrayList<String>) geometry.get("coordinates")));
+                    navPointList.put((String) pointer.get("id"), new PoiGeoJsonObject((String) pointer.get("id"), (String) geometry.get("type"), (LinkedHashMap<String, String>) pointer.get("properties"), (ArrayList<String>) geometry.get("coordinates")));
                 }
             }
         } catch (IOException e) {
@@ -99,7 +99,7 @@ public class NavigationActivity {
         for (int i = path.size() - 1; i >= 0; i--) {
             finalPath.put(String.valueOf(path.get(i)), null);
         }
-        for (Map.Entry<String,PoiGeoJsonObject> entry : poiList.entrySet()){
+        for (Map.Entry<String,PoiGeoJsonObject> entry : navPointList.entrySet()){
             String key = String.valueOf(entry.getValue().props.get("Nav"));
             if(finalPath.containsKey(key)){
                 finalPath.put(key, entry.getValue().coordinates);
@@ -110,11 +110,6 @@ public class NavigationActivity {
 
     @RequiresApi(api = Build.VERSION_CODES.N)
     public static void displayRoute(int src, int dest, MapboxMap mapboxMap){
-        // remove any existing polyline
-        if (polyline != null) {
-            mapboxMap.removePolyline(polyline);
-            polyline = null;
-        }
         if (src != dest) {
             LinkedHashMap<String, ArrayList<String>> finalPath = getShortestPath(src, dest);
             ArrayList<LatLng> points = finalPath.values().stream().map(point -> new LatLng(
@@ -130,6 +125,14 @@ public class NavigationActivity {
                     .addAll(points)
                     .color(Color.RED)
                     .width(3f));
+        }
+    }
+
+    public static void removeRoute(MapboxMap mapboxMap){
+        // remove any existing polyline
+        if (polyline != null) {
+            mapboxMap.removePolyline(polyline);
+            polyline = null;
         }
     }
 
