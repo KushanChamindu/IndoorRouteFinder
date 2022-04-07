@@ -14,5 +14,5 @@
     <string name="calc_route">Directions</string>
     <string name="cancel_route">Cancel</string>
     <string name="switch_level">Level</string>
-    <string name="initialize">Init</string>
+    <string name="initialize">Recenter</string>
 </resources>

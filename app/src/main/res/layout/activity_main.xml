@@ -20,26 +20,11 @@
             android:background="@color/white"
             android:orientation="horizontal">
 
-            <!--            <Button-->
-            <!--                android:id="@+id/switchLevelButton"-->
-            <!--                android:layout_width="wrap_content"-->
-            <!--                android:layout_height="wrap_content"-->
-            <!--                android:layout_gravity="right|top"-->
-            <!--                android:orientation="vertical"-->
-            <!--                android:shadowRadius="100"-->
-            <!--                android:text="@string/switch_level"-->
-            <!--                android:textColor="#F3F0F0"-->
-            <!--                tools:ignore="RtlHardcoded"-->
-            <!--                tools:layout_conversion_absoluteHeight="48dp"-->
-            <!--                tools:layout_conversion_absoluteWidth="143dp"-->
-            <!--                tools:layout_editor_absoluteX="15dp"-->
-            <!--                tools:layout_editor_absoluteY="15dp" />-->
-
             <TextView
                 android:id="@+id/stoleText"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_weight="4"
+                android:layout_weight="1"
                 android:fontFamily="monospace"
                 android:paddingLeft="5dp"
                 android:paddingTop="3dp"
@@ -59,7 +44,7 @@
                 android:layout_gravity="left|top"
                 android:layout_marginLeft="2dp"
                 android:layout_marginRight="4dp"
-                android:layout_weight="5"
+                android:layout_weight="1"
                 android:orientation="vertical"
                 android:text="@string/calc_route"
                 android:textColor="#FBFBFB"
@@ -73,7 +58,7 @@
                 android:layout_height="wrap_content"
                 android:layout_gravity="right|top"
                 android:layout_marginRight="4dp"
-                android:layout_weight="6"
+                android:layout_weight="1"
                 android:orientation="vertical"
                 android:text="@string/initialize"
                 android:textColor="#FBFBFB"

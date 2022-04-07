@@ -10,7 +10,6 @@ import static com.mapbox.mapboxsdk.style.layers.PropertyFactory.lineWidth;
 
 import android.content.res.AssetManager;
 import android.content.res.Resources;
-import android.content.res.loader.AssetsProvider;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Color;
@@ -25,7 +24,6 @@ import com.mapbox.mapboxsdk.camera.CameraUpdateFactory;
 import com.mapbox.mapboxsdk.geometry.LatLng;
 import com.mapbox.mapboxsdk.maps.MapboxMap;
 import com.mapbox.mapboxsdk.maps.Style;
-import com.mapbox.mapboxsdk.storage.Resource;
 import com.mapbox.mapboxsdk.style.layers.LineLayer;
 
 import java.io.IOException;
