@@ -63,7 +63,7 @@ public class MainActivity<prteccted> extends AppCompatActivity implements OnMapR
             Log.i("Bluetooth", "  RSSI: " + action + "dBm");
             if (BluetoothDevice.ACTION_FOUND.equals(action)) {
                 int rssi = intent.getShortExtra(BluetoothDevice.EXTRA_RSSI, Short.MIN_VALUE);
-                Log.i("Bluetooth", "  RSSI: " + rssi + "dBm");
+                Log.i("Bluetooth", "  RSSI: " + rssi + "dBm ");
                 Toast.makeText(getApplicationContext(), "  RSSI: " + rssi + "dBm", Toast.LENGTH_SHORT).show();
             }
         }
