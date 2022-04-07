@@ -15,4 +15,6 @@
     <string name="cancel_route">Cancel</string>
     <string name="switch_level">Level</string>
     <string name="initialize">Recenter</string>
+    <string name="bluetooth_on">bluetooth on</string>
+    <string name="bluetooth_off">bluetooth off</string>
 </resources>

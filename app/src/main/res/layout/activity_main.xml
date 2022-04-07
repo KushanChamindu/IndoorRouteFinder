@@ -67,6 +67,21 @@
                 tools:layout_editor_absoluteX="15dp"
                 tools:layout_editor_absoluteY="15dp" />
 
+            <Button
+                android:id="@+id/bluetoothOn"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_gravity="right|top"
+                android:layout_marginRight="4dp"
+                android:layout_weight="1"
+                android:orientation="vertical"
+                android:text="@string/bluetooth_on"
+                android:textColor="#FBFBFB"
+                android:textSize="12sp"
+                tools:ignore="RtlHardcoded"
+                tools:layout_editor_absoluteX="15dp"
+                tools:layout_editor_absoluteY="15dp" />
+
         </LinearLayout>
 
     </com.mapbox.mapboxsdk.maps.MapView>
