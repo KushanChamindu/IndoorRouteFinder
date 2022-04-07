@@ -98,7 +98,8 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 //                }
 //            }
 //        });
-
+        initButton.setOnClickListener(view -> MapSetupActivity.setInitialCamera(mapboxMap));
+        NavigationActivity.initNav(MapSetupActivity.loadJsonFromAsset(goeFileName, getAssets()));
         routeButton.setOnClickListener(view -> {
             if (routeButton.getText() == getResources().getText(R.string.calc_route)) {
                 NavigationActivity.displayRoute(1, destination, mapboxMap);
@@ -111,8 +112,8 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
             }
         });
 
-        initButton.setOnClickListener(view -> MapSetupActivity.setInitialCamera(mapboxMap));
-        NavigationActivity.initNav(MapSetupActivity.loadJsonFromAsset(goeFileName, getAssets()));
+//        initButton.setOnClickListener(view -> MapSetupActivity.setInitialCamera(mapboxMap));
+//        NavigationActivity.initNav(MapSetupActivity.loadJsonFromAsset(goeFileName, getAssets()));
     }
 
     @RequiresApi(api = Build.VERSION_CODES.N)

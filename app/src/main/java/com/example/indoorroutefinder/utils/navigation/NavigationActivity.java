@@ -99,9 +99,9 @@ public class NavigationActivity {
         for (int i = path.size() - 1; i >= 0; i--) {
             finalPath.put(String.valueOf(path.get(i)), null);
         }
-        for (Map.Entry<String,PoiGeoJsonObject> entry : navPointList.entrySet()){
+        for (Map.Entry<String, PoiGeoJsonObject> entry : navPointList.entrySet()) {
             String key = String.valueOf(entry.getValue().props.get("Nav"));
-            if(finalPath.containsKey(key)){
+            if (finalPath.containsKey(key)) {
                 finalPath.put(key, entry.getValue().coordinates);
             }
         }
@@ -109,26 +109,39 @@ public class NavigationActivity {
     }
 
     @RequiresApi(api = Build.VERSION_CODES.N)
-    public static void displayRoute(int src, int dest, MapboxMap mapboxMap){
+    public static void displayRoute(int src, int dest, MapboxMap mapboxMap) {
         if (src != dest) {
             LinkedHashMap<String, ArrayList<String>> finalPath = getShortestPath(src, dest);
-            ArrayList<LatLng> points = finalPath.values().stream().map(point -> new LatLng(
-                    Double.parseDouble(String.valueOf(point.get(1))),
-                    Double.parseDouble(String.valueOf(point.get(0)))
-            )).collect(Collectors.toCollection(ArrayList::new));
-
+            Log.i("1 Path is", String.valueOf(finalPath));
+//            ArrayList<LatLng> points = finalPath.values().stream().map(point ->
+//                    new LatLng(
+//                            Double.parseDouble(String.valueOf(point.get(1))),
+//                            Double.parseDouble(String.valueOf(point.get(0)))
+//                    )).collect(Collectors.toCollection(ArrayList::new));
             // Log path
-            Log.i("Path is", String.valueOf(finalPath));
+            ArrayList<LatLng> points = new ArrayList<>();
+            for (ArrayList<String> point : finalPath.values()) {
+                points.add(
+                        new LatLng(
+                                Double.parseDouble(String.valueOf(point.get(1))),
+                                Double.parseDouble(String.valueOf(point.get(0)))
+                        )
+                );
+            }
+
+            Log.i("2 Path is", String.valueOf(points));
 
             // add polyline to MapboxMap object
             polyline = mapboxMap.addPolyline(new PolylineOptions()
                     .addAll(points)
                     .color(Color.RED)
-                    .width(3f));
+                    .width(6f)
+
+            );
         }
     }
 
-    public static void removeRoute(MapboxMap mapboxMap){
+    public static void removeRoute(MapboxMap mapboxMap) {
         // remove any existing polyline
         if (polyline != null) {
             mapboxMap.removePolyline(polyline);

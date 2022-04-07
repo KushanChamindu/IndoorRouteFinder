@@ -4,6 +4,7 @@ import static com.mapbox.mapboxsdk.style.expressions.Expression.exponential;
 import static com.mapbox.mapboxsdk.style.expressions.Expression.interpolate;
 import static com.mapbox.mapboxsdk.style.expressions.Expression.stop;
 import static com.mapbox.mapboxsdk.style.expressions.Expression.zoom;
+import static com.mapbox.mapboxsdk.style.layers.PropertyFactory.lineCap;
 import static com.mapbox.mapboxsdk.style.layers.PropertyFactory.lineColor;
 import static com.mapbox.mapboxsdk.style.layers.PropertyFactory.lineOpacity;
 import static com.mapbox.mapboxsdk.style.layers.PropertyFactory.lineWidth;
@@ -25,6 +26,7 @@ import com.mapbox.mapboxsdk.geometry.LatLng;
 import com.mapbox.mapboxsdk.maps.MapboxMap;
 import com.mapbox.mapboxsdk.maps.Style;
 import com.mapbox.mapboxsdk.style.layers.LineLayer;
+import com.mapbox.mapboxsdk.style.layers.Property;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -77,6 +79,7 @@ public class MapSetupActivity {
         LineLayer indoorBuildingLineLayer = new LineLayer("indoor-building-line", "indoor-building").withProperties(
                 lineColor(Color.parseColor("#50667f")),
                 lineWidth(3f),
+                lineCap(Property.LINE_CAP_ROUND),
                 lineOpacity(interpolate(exponential(1f), zoom(),
                         stop(16f, 0f),
                         stop(16.5f, 0.5f),
