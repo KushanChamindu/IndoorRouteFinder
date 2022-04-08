@@ -1,5 +1,105 @@
 package com.example.indoorroutefinder.utils.connection;
 
-public class BluetoothManagerActivity {
+import static android.app.Activity.RESULT_OK;
 
+import android.Manifest;
+import android.annotation.SuppressLint;
+import android.bluetooth.BluetoothAdapter;
+import android.bluetooth.BluetoothDevice;
+import android.content.Context;
+import android.content.Intent;
+import android.content.IntentFilter;
+import android.content.pm.PackageManager;
+import android.util.Log;
+import android.widget.Toast;
+
+import androidx.core.app.ActivityCompat;
+
+import com.example.indoorroutefinder.utils.common.CommonActivity;
+
+import java.util.Set;
+import java.util.Timer;
+import java.util.TimerTask;
+
+public class BluetoothManagerActivity {
+    private static BluetoothAdapter mBluetoothAdapter;
+
+    public static void onReceive(Context context, Intent intent) {
+        String action = intent.getAction();
+        Log.i("Bluetooth", "  RSSI: " + action + "dBm");
+        if (BluetoothDevice.ACTION_FOUND.equals(action)) {
+            int rssi = intent.getShortExtra(BluetoothDevice.EXTRA_RSSI, Short.MIN_VALUE);
+            Log.i("Bluetooth", "  RSSI: " + rssi + "dBm ");
+            Toast.makeText(context, "  RSSI: " + rssi + "dBm", Toast.LENGTH_SHORT).show();
+        }
+    }
+
+    public static IntentFilter initializeAdapter() {
+        mBluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
+        if (mBluetoothAdapter == null) {
+            Log.i("Bluetooth", "Bluetooth adapter is null");
+        } else {
+            Log.i("Bluetooth", "Bluetooth adapter is not null");
+        }
+        if (mBluetoothAdapter.isEnabled()) {
+            Log.i("Bluetooth", "Bluetooth is enabled");
+        } else {
+            Log.i("Bluetooth", "Bluetooth is disable");
+        }
+        IntentFilter intent_filter = new IntentFilter(BluetoothDevice.ACTION_FOUND);
+        return intent_filter;
+    }
+
+    public static void onActivityResult(int requestCode, int REQUEST_ENABLE_BT) {
+        if (requestCode == REQUEST_ENABLE_BT) {
+            if (requestCode == RESULT_OK) {
+                Log.i("Bluetooth", "Bluetooth is on ");
+            } else {
+                Log.i("Bluetooth", "Couldn't on bluetooth ");
+            }
+        }
+        // Log.i("Bluetooth", String.valueOf(requestCode) +" "+ resultCode);
+    }
+
+    public static void startDiscovery(Context context) {
+        if (!mBluetoothAdapter.isEnabled()) {
+            CommonActivity.showDialog("Warning!", "Please turn on Bluetooth and Try Again.");
+            // Log.i("Bluetooth", "Turning on Bluetooth.....");
+            // Intent intent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
+            if (ActivityCompat.checkSelfPermission(context, Manifest.permission.BLUETOOTH_CONNECT) != PackageManager.PERMISSION_GRANTED) {
+                // TODO: Consider calling
+                //    ActivityCompat#requestPermissions
+                // here to request the missing permissions, and then overriding
+                //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
+                //                                           int[] grantResults)
+                // to handle the case where the user grants the permission. See the documentation
+                // for ActivityCompat#requestPermissions for more details.
+                return;
+            }
+            // startActivityForResult(intent, REQUEST_ENABLE_BT);
+        } else {
+            Log.i("Bluetooth", "Bluetooth already on");
+        }
+
+        //to Discoverable mode on
+        // Intent intent_discover = new Intent(BluetoothAdapter.ACTION_REQUEST_DISCOVERABLE);
+        // startActivityForResult(intent_discover, REQUEST_DISCOVER_BT);
+
+        // Get paired devices
+        Set<BluetoothDevice> devices = mBluetoothAdapter.getBondedDevices();
+        for (BluetoothDevice device : devices) {
+            Log.i("Bluetooth", device.getName() + " " + device);
+        }
+        mBluetoothAdapter.startDiscovery();
+        Timer timer = new Timer();
+        timer.scheduleAtFixedRate(new TimerTask() {
+            @SuppressLint("MissingPermission")
+            @Override
+            public void run() {
+                //Here you can use handler or whatever you want to use.
+                Log.i("Bluetooth", "Discovery Starting");
+                mBluetoothAdapter.startDiscovery();
+            }
+        }, 0, 12000);
+    }
 }
