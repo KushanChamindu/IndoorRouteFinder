@@ -24,13 +24,15 @@ import java.util.TimerTask;
 public class BluetoothManagerActivity {
     private static BluetoothAdapter mBluetoothAdapter;
 
+    @SuppressLint("MissingPermission")
     public static void onReceive(Context context, Intent intent) {
         String action = intent.getAction();
         Log.i("Bluetooth", "  RSSI: " + action + "dBm");
         if (BluetoothDevice.ACTION_FOUND.equals(action)) {
             int rssi = intent.getShortExtra(BluetoothDevice.EXTRA_RSSI, Short.MIN_VALUE);
-            Log.i("Bluetooth", "  RSSI: " + rssi + "dBm ");
-            Toast.makeText(context, "  RSSI: " + rssi + "dBm", Toast.LENGTH_SHORT).show();
+            BluetoothDevice device = intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE);
+            Log.i("Bluetooth", "Device: " + device.getName() + "  RSSI: " + rssi + "dBm ");
+            Toast.makeText(context, "Device: " + device.getName() + "  RSSI: " + rssi + "dBm", Toast.LENGTH_SHORT).show();
         }
     }
 
@@ -90,7 +92,6 @@ public class BluetoothManagerActivity {
         for (BluetoothDevice device : devices) {
             Log.i("Bluetooth", device.getName() + " " + device);
         }
-        mBluetoothAdapter.startDiscovery();
         Timer timer = new Timer();
         timer.scheduleAtFixedRate(new TimerTask() {
             @SuppressLint("MissingPermission")
