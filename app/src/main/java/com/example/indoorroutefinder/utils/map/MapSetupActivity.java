@@ -89,6 +89,9 @@ public class MapSetupActivity {
         Bitmap icon = BitmapFactory.decodeResource(resources, R.drawable.location);
         style.addImage("marker", icon);
         Bitmap icon1 = BitmapFactory.decodeResource(resources, R.drawable.redlocation);
+        Bitmap compassNeedleSymbolLayerIcon = BitmapFactory.decodeResource(
+                resources, R.drawable.user_location_48);
+        style.addImage("UserLoc", compassNeedleSymbolLayerIcon);
         style.addImage("redMarker", icon1);
 //        SymbolLayer indoorBuildingSymbolLayer = new SymbolLayer("indoor-building-line-symbol", "indoor-building").withProperties(
 //                PropertyFactory.iconImage("marker")

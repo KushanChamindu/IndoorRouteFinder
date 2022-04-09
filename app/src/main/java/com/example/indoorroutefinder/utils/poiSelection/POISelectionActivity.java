@@ -20,7 +20,8 @@ import java.util.Map;
 
 public class POISelectionActivity {
     private static final List<SymbolOptions> options = new ArrayList<>();
-    private static Symbol lastClickedSymbol=null;
+    private static Symbol lastClickedSymbol = null;
+    private static  Symbol userLoc = null;
 
     public static List<PoiGeoJsonObject> loadPOIs(String geoJsonSource, SymbolManager symbolManager) {
         ObjectMapper objectMapper = new ObjectMapper();
@@ -34,7 +35,7 @@ public class POISelectionActivity {
                 LinkedHashMap geometry = (LinkedHashMap) pointer.get("geometry");
                 LinkedHashMap properties = (LinkedHashMap) pointer.get("properties");
                 ArrayList<String> coordinates = (ArrayList<String>) geometry.get("coordinates");
-                if (properties.get("point-type")!= null && properties.get("point-type").equals("stole")) {
+                if (properties.get("point-type") != null && properties.get("point-type").equals("stole")) {
                     poiList.add(new PoiGeoJsonObject((String) pointer.get("id"), (String) geometry.get("type"), (LinkedHashMap<String, String>) pointer.get("properties"), coordinates));
                     Log.i("Print", String.valueOf(coordinates));
                     assert coordinates != null;
@@ -43,13 +44,22 @@ public class POISelectionActivity {
                             .withIconImage("marker")
                             .withTextField((String) properties.get("Name"))
                             .withTextAnchor("top")
-                            .withTextOffset(new Float[] {0f, 1.5f})
+                            .withTextOffset(new Float[]{0f, 1.5f})
                             .withIconSize(1f)
-                            .withIconOffset(new Float[] {0f,-1.5f})
+                            .withIconOffset(new Float[]{0f, -1.5f})
                     );
                 }
             }
+            options.add(new SymbolOptions()
+                    .withLatLng(new LatLng(6.795565, 79.919774))
+                            .withIconImage("UserLoc")
+//                    .withTextAnchor("top")
+                            .withTextOffset(new Float[]{0f, 1.5f})
+                            .withIconSize(1f)
+                            .withIconOffset(new Float[]{0f, -1.5f}));
             List<Symbol> symbols = symbolManager.create(options);
+            userLoc = symbols.get(symbols.size()-1);
+//            userLoc.setIconRotate((float) headDirection);
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -57,14 +67,13 @@ public class POISelectionActivity {
     }
 
     @RequiresApi(api = Build.VERSION_CODES.N)
-    public static void toggleMarker(Symbol symbolToUpdate, SymbolManager symbolManager){
-        if (symbolToUpdate == null){
+    public static void toggleMarker(Symbol symbolToUpdate, SymbolManager symbolManager) {
+        if (symbolToUpdate == null) {
             lastClickedSymbol.setIconImage("marker");
             symbolManager.update(lastClickedSymbol);
             lastClickedSymbol = null;
-        }
-        else if (symbolToUpdate.getIconImage().equals("marker")) {
-            if (lastClickedSymbol != null){
+        } else if (symbolToUpdate.getIconImage().equals("marker")) {
+            if (lastClickedSymbol != null) {
                 lastClickedSymbol.setIconImage("marker");
             }
             symbolToUpdate.setIconImage("redMarker");

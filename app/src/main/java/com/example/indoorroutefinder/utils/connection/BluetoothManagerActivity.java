@@ -16,6 +16,8 @@ import android.widget.Toast;
 import androidx.core.app.ActivityCompat;
 
 import com.example.indoorroutefinder.utils.common.CommonActivity;
+import com.example.indoorroutefinder.utils.trilateration.Point;
+import com.example.indoorroutefinder.utils.trilateration.Trilateration;
 
 import java.util.Set;
 import java.util.Timer;
@@ -35,6 +37,14 @@ public class BluetoothManagerActivity {
             BluetoothDevice device = intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE);
             Log.i("Bluetooth", "Device: " + device.getName() + "  RSSI: " + rssi + "dBm \n distance ::" + distance);
             Toast.makeText(context, "Device: " + device.getName() + "  RSSI: " + rssi + "dBm", Toast.LENGTH_SHORT).show();
+
+
+
+            Point p1=new Point(-19.6685,-69.1942,84);
+            Point p2=new Point(-20.2705,-70.1311,114);
+            Point p3=new Point(-20.5656,-70.1807,120);
+            double[] a= Trilateration.Compute(p1,p2,p3);
+            Log.i("Trilateration", "LatLon: "+a[0]+", "+a[1]);
         }
     }
 

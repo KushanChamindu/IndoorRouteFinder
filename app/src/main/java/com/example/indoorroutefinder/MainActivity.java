@@ -22,6 +22,7 @@ import com.example.indoorroutefinder.utils.map.MapSetupActivity;
 import com.example.indoorroutefinder.utils.navigation.NavigationActivity;
 import com.example.indoorroutefinder.utils.poiSelection.POISelectionActivity;
 import com.example.indoorroutefinder.utils.poiSelection.PoiGeoJsonObject;
+import com.example.indoorroutefinder.utils.trilateration.SensorManagerActivity;
 import com.mapbox.mapboxsdk.Mapbox;
 import com.mapbox.mapboxsdk.maps.MapView;
 import com.mapbox.mapboxsdk.maps.MapboxMap;
@@ -70,6 +71,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         IntentFilter intent_filter = BluetoothManagerActivity.initializeAdapter();
         registerReceiver(receiver, intent_filter);
         Log.i("Bluetooth", "receiver " + String.valueOf(receiver));
+        new SensorManagerActivity();
     }
 
     @Override
