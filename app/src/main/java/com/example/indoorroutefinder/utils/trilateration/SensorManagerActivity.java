@@ -20,6 +20,8 @@ public class SensorManagerActivity {
     double azimuth = 0;
     double pitch = 0;
     double roll = 0;
+    int counter = 0;
+    double[] azimuth_list = new double[40];
 
     public void onSensorChanged(SensorEvent sensorEvent, SymbolManager symbolManager) {
         // If the sensor data is unreliable return
@@ -43,11 +45,20 @@ public class SensorManagerActivity {
             boolean success = SensorManager.getRotationMatrix(inR, I,
                     gravity, geomag);
             if (success) {
+                counter+=1;
                 SensorManager.getOrientation(inR, orientVals);
                 azimuth = Math.toDegrees(orientVals[0]);
                 pitch = Math.toDegrees(orientVals[1]);
                 roll = Math.toDegrees(orientVals[2]);
-                POISelectionActivity.userMarkRotate(azimuth,symbolManager);
+                azimuth_list[counter] = azimuth;
+                if(counter==40){
+                    double sum = 0;
+                    for (double item: azimuth_list) {
+                        sum+=item;
+                    }
+                    POISelectionActivity.userMarkRotate(sum/counter,symbolManager);
+                    counter=0;
+                }
             }
         }
 
