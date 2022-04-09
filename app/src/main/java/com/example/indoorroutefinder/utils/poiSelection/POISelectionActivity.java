@@ -21,7 +21,7 @@ import java.util.Map;
 public class POISelectionActivity {
     private static final List<SymbolOptions> options = new ArrayList<>();
     private static Symbol lastClickedSymbol = null;
-    private static  Symbol userLoc = null;
+    private static Symbol userLoc = null;
 
     public static List<PoiGeoJsonObject> loadPOIs(String geoJsonSource, SymbolManager symbolManager) {
         ObjectMapper objectMapper = new ObjectMapper();
@@ -52,13 +52,13 @@ public class POISelectionActivity {
             }
             options.add(new SymbolOptions()
                     .withLatLng(new LatLng(6.795565, 79.919774))
-                            .withIconImage("UserLoc")
+                    .withIconImage("UserLoc")
 //                    .withTextAnchor("top")
-                            .withTextOffset(new Float[]{0f, 1.5f})
-                            .withIconSize(1f)
-                            .withIconOffset(new Float[]{0f, -1.5f}));
+                    .withTextOffset(new Float[]{0f, 1.5f})
+                    .withIconSize(1f)
+                    .withIconOffset(new Float[]{0f, -1.5f}));
             List<Symbol> symbols = symbolManager.create(options);
-            userLoc = symbols.get(symbols.size()-1);
+            userLoc = symbols.get(symbols.size() - 1);
 //            userLoc.setIconRotate((float) headDirection);
         } catch (IOException e) {
             e.printStackTrace();
@@ -80,5 +80,11 @@ public class POISelectionActivity {
             symbolManager.update(symbolToUpdate);
             lastClickedSymbol = symbolToUpdate;
         }
+    }
+
+    public static void userMarkRotate(double azimuth, SymbolManager symbolManager) {
+        Log.i("userMarkRotate", "test");
+        userLoc.setIconRotate((float) azimuth);
+        symbolManager.update(userLoc);
     }
 }

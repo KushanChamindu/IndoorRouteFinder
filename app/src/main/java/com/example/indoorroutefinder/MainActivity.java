@@ -4,6 +4,10 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.hardware.Sensor;
+import android.hardware.SensorEvent;
+import android.hardware.SensorEventListener;
+import android.hardware.SensorManager;
 import android.os.Build;
 import android.os.Bundle;
 import android.util.Log;
@@ -34,7 +38,7 @@ import com.mapbox.mapboxsdk.style.sources.GeoJsonSource;
 import java.util.List;
 import java.util.stream.Collectors;
 
-public class MainActivity extends AppCompatActivity implements OnMapReadyCallback, Style.OnStyleLoaded {
+public class MainActivity extends AppCompatActivity implements SensorEventListener, OnMapReadyCallback, Style.OnStyleLoaded {
 
     private MapView mapView;
     private MapboxMap mapboxMap;
@@ -50,6 +54,10 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     private static final int REQUEST_ENABLE_BT = 0;
     private static final int REQUEST_DISCOVER_BT = 1;
     private Context context;
+    private SensorManager mSensorManager;
+    private Sensor mAccelerometer;
+    private Sensor mOrientationSensor;
+    private SensorManagerActivity sensorManagerActivity = new SensorManagerActivity();
 
     private final BroadcastReceiver receiver = new BroadcastReceiver() {
         @Override
@@ -71,7 +79,9 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         IntentFilter intent_filter = BluetoothManagerActivity.initializeAdapter();
         registerReceiver(receiver, intent_filter);
         Log.i("Bluetooth", "receiver " + String.valueOf(receiver));
-        new SensorManagerActivity();
+        mSensorManager = (SensorManager) getSystemService(SENSOR_SERVICE);
+        mAccelerometer = mSensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
+        mOrientationSensor = mSensorManager.getDefaultSensor(Sensor.TYPE_MAGNETIC_FIELD);
     }
 
     @Override
@@ -194,6 +204,9 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         if (mapView != null) {
             mapView.onResume();
         }
+        mSensorManager.registerListener(this, mAccelerometer, SensorManager.SENSOR_DELAY_NORMAL);
+        // ...and the orientation sensor
+        mSensorManager.registerListener(this, mOrientationSensor, SensorManager.SENSOR_DELAY_NORMAL);
     }
 
     @Override
@@ -202,6 +215,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         if (mapView != null) {
             mapView.onPause();
         }
+        mSensorManager.unregisterListener(this);
     }
 
     @Override
@@ -235,5 +249,15 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         if (mapView != null) {
             mapView.onSaveInstanceState(outState);
         }
+    }
+
+    @Override
+    public void onSensorChanged(SensorEvent sensorEvent) {
+        sensorManagerActivity.onSensorChanged(sensorEvent, symbolManager);
+    }
+
+    @Override
+    public void onAccuracyChanged(Sensor sensor, int i) {
+
     }
 }

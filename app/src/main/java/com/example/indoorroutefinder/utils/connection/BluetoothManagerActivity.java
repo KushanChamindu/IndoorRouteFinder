@@ -17,6 +17,7 @@ import androidx.core.app.ActivityCompat;
 
 import com.example.indoorroutefinder.utils.common.CommonActivity;
 import com.example.indoorroutefinder.utils.trilateration.Point;
+import com.example.indoorroutefinder.utils.trilateration.SensorManagerActivity;
 import com.example.indoorroutefinder.utils.trilateration.Trilateration;
 
 import java.util.Set;
@@ -76,6 +77,7 @@ public class BluetoothManagerActivity {
     }
 
     public static void startDiscovery(Context context) {
+        new SensorManagerActivity();
         if (!mBluetoothAdapter.isEnabled()) {
             CommonActivity.showDialog("Warning!", "Please turn on Bluetooth and Try Again.");
             // Log.i("Bluetooth", "Turning on Bluetooth.....");
