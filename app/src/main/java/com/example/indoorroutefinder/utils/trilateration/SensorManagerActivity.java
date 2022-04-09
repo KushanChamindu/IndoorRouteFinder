@@ -56,10 +56,8 @@ public class SensorManagerActivity {
                     counter =41;
                     POISelectionActivity.userMarkRotate(azimuth,symbolManager);
                 }
-
             }
         }
-
     }
 
 }
