@@ -30,7 +30,8 @@ public class BluetoothManagerActivity {
         Log.i("Bluetooth", "  RSSI: " + action + "dBm");
         if (BluetoothDevice.ACTION_FOUND.equals(action)) {
             int rssi = intent.getShortExtra(BluetoothDevice.EXTRA_RSSI, Short.MIN_VALUE);
-            double distance = ((Math.pow(10,rssi/-20.0)) * 0.125)/(4*Math.PI)/10;
+//            double distance = ((Math.pow(10,rssi/-20.0)) * 0.125)/(4*Math.PI)/10;
+            double distance = Math.pow(10,(rssi + 45.6714)/ (-10*4.7375));
             BluetoothDevice device = intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE);
             Log.i("Bluetooth", "Device: " + device.getName() + "  RSSI: " + rssi + "dBm \n distance ::" + distance);
             Toast.makeText(context, "Device: " + device.getName() + "  RSSI: " + rssi + "dBm", Toast.LENGTH_SHORT).show();
