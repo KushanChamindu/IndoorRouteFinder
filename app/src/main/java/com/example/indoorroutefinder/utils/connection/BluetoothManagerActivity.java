@@ -19,24 +19,38 @@ import androidx.core.app.ActivityCompat;
 
 import com.example.indoorroutefinder.utils.common.CommonActivity;
 import com.example.indoorroutefinder.utils.poiSelection.POISelectionActivity;
+import com.example.indoorroutefinder.utils.trilateration.Anchor;
 import com.example.indoorroutefinder.utils.trilateration.Point;
 import com.example.indoorroutefinder.utils.trilateration.SensorManagerActivity;
 import com.example.indoorroutefinder.utils.trilateration.Trilateration;
 import com.mapbox.mapboxsdk.plugins.annotation.SymbolManager;
 
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.OptionalDouble;
 import java.util.OptionalInt;
 import java.util.Set;
 import java.util.Timer;
 import java.util.TimerTask;
 
+
+@RequiresApi(api = Build.VERSION_CODES.R)
 public class BluetoothManagerActivity {
     private static BluetoothAdapter mBluetoothAdapter;
     private static ArrayList<Integer> rssi_list = new ArrayList<>();
-    private static int count=0;
+    private static int count = 0;
+    private static final double N = 2.4038;
+    private static final double C = 61.3776;
+    private static Map<String, Anchor> anchor_list = new HashMap<String, Anchor>() {{
+        put("Anchor 1", new Anchor(79.91970864014434, 6.795573572472691, "Anchor 1"));
+        put("Anchor 2", new Anchor(79.91979407661779, 6.795534487593358, "Anchor 2"));
+        put("Anchor 3", new Anchor(79.91977868141629, 6.795588418609739, "Anchor 3"));
+    }};
+    private static Point p1;
+    private static Point p2;
+    private static Point p3;
 
-    @RequiresApi(api = Build.VERSION_CODES.N)
     @SuppressLint("MissingPermission")
     public static void onReceive(Context context, Intent intent, SymbolManager symbolManager) {
         String action = intent.getAction();
@@ -45,29 +59,60 @@ public class BluetoothManagerActivity {
             int rssi = intent.getShortExtra(BluetoothDevice.EXTRA_RSSI, Short.MIN_VALUE);
 
 //            double distance = ((Math.pow(10,rssi/-20.0)) * 0.125)/(4*Math.PI)/10;
-            double distance = Math.pow(10,(rssi + 45.6714)/ (-10*4.7375));
+            // n= 2.4038 and c = 61.3776
+            double distance = Math.pow(10, (rssi + C) / (-10 * N));
             BluetoothDevice device = intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE);
 //            Log.i("Bluetooth", "Device: " + device.getName() + "  RSSI: " + rssi + "dBm \n distance ::" + distance);
-//            Toast.makeText(context, "Device: " + device.getName() + "  RSSI: " + rssi + "dBm", Toast.LENGTH_SHORT).show();
+//            Toast.makeText(context, "Device: " + device.getName() + "  RSSI: " + rssi + "dBm \nDistance: "+ distance, Toast.LENGTH_SHORT).show();
             Log.i("Rassi list", String.valueOf(rssi_list));
-            if(count == 30){
+            if (count == 30) {
                 Double average = rssi_list.stream()
                         .mapToDouble(d -> d)
                         .average()
                         .orElse(0.0);
                 Log.i("Rssi list with 30 item", String.valueOf(average));
-            }else if(device.getName().equals("Anchor 2")){
-                count+=1;
+            } else if (device.getName().equals("Anchor 2")) {
+                count += 1;
                 rssi_list.add(rssi);
+//                Log.i("Bluetooth", "Device: " + device.getName() + "  RSSI: " + rssi + "dBm \n distance ::" + distance);
+//                Toast.makeText(context, "Device: " + device.getName() + "  RSSI: " + rssi + "dBm \nDistance: "+ distance, Toast.LENGTH_SHORT).show();
+            }
+            if (anchor_list.containsKey(device.getName())) {
+                anchor_list.get(device.getName()).setDistanceToUser(distance);
+                anchor_list.get(device.getName()).setUpdate(true);
+                if (device.getName().equals("Anchor 1")) {
+                    p1 = new Point(anchor_list.get("Anchor 1").getLat(), anchor_list.get("Anchor 1").getLon(), distance);
+
+                } else if (device.getName().equals("Anchor 2")) {
+                    p2 = new Point(anchor_list.get("Anchor 2").getLat(), anchor_list.get("Anchor 2").getLon(), distance);
+
+                } else if (device.getName().equals("Anchor 3")) {
+                    p3 = new Point(anchor_list.get("Anchor 3").getLat(), anchor_list.get("Anchor 3").getLon(), distance);
+                }
+
+            }
+            if (anchor_list.get("Anchor 1").isUpdate() && anchor_list.get("Anchor 2").isUpdate() &&
+                    anchor_list.get("Anchor 3").isUpdate()) {
+                double[] a = Trilateration.Compute(p1, p2, p3);
+                Log.i("User localization 1", String.valueOf(p1.gr()));
+                Log.i("User localization 2", String.valueOf(p2.gr()));
+                Log.i("User localization 3", String.valueOf(p3.gr()));
+                if(a != null){
+                    POISelectionActivity.userRelocate(a[0] , a[1] , symbolManager);
+                    Log.i("Trilateration", "LatLon: " + a[0] + ", " + a[1]);
+                }
+//
+                anchor_list.get("Anchor 1").setUpdate(false);
+                anchor_list.get("Anchor 2").setUpdate(false);
+                anchor_list.get("Anchor 3").setUpdate(false);
             }
 
-
-            Point p1=new Point(-19.6685,-69.1942,84);
-            Point p2=new Point(-20.2705,-70.1311,114);
-            Point p3=new Point(-20.5656,-70.1807,120);
-            double[] a= Trilateration.Compute(p1,p2,p3);
-            Log.i("Trilateration", "LatLon: "+a[0]+", "+a[1]);
-            POISelectionActivity.userRelocate(79.919685 , 6.795557, symbolManager);
+//            Point p1 = new Point(anchor_list.get("Anchor 1").getLat(), anchor_list.get("Anchor 1").getLon(), distance);
+//            Point p2 = new Point(anchor_list.get("Anchor 2").getLat(), anchor_list.get("Anchor 2").getLon(), distance);
+//            Point p3 = new Point(anchor_list.get("Anchor 3").getLat(), anchor_list.get("Anchor 3").getLon(), distance);
+//            double[] a = Trilateration.Compute(p1, p2, p3);
+//            Log.i("Trilateration", "LatLon: " + a[0] + ", " + a[1]);
+//            POISelectionActivity.userRelocate(79.919685, 6.795557, symbolManager);
         }
     }
 

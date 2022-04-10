@@ -120,7 +120,10 @@ public class POISelectionActivity {
     }
 
     public static void userMarkRotate(double azimuth, SymbolManager symbolManager) {
-        userLoc.setIconRotate((float) azimuth);
-        symbolManager.update(userLoc);
+        if(symbolManager != null){
+            userLoc.setIconRotate((float) azimuth);
+            symbolManager.update(userLoc);
+        }
+
     }
 }
