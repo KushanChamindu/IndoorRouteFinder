@@ -2,9 +2,12 @@ package com.example.indoorroutefinder.utils.poiSelection;
 
 import android.os.Build;
 import android.util.Log;
+import android.view.View;
+import android.widget.Button;
 
 import androidx.annotation.RequiresApi;
 
+import com.example.indoorroutefinder.utils.map.MapSetupActivity;
 import com.fasterxml.jackson.databind.MapperFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.mapbox.mapboxsdk.geometry.LatLng;
@@ -57,7 +60,7 @@ public class POISelectionActivity {
             options.add(new SymbolOptions()
                     .withLatLng(new LatLng(6.795565, 79.919774))
                     .withIconImage("UserLoc")
-//                    .withTextAnchor("top")
+                    .withTextField("")
                     .withTextOffset(new Float[]{0f, 1.5f})
                     .withIconSize(1f)
                     .withIconOffset(new Float[]{0f, -1.5f}));
@@ -85,20 +88,35 @@ public class POISelectionActivity {
             lastClickedSymbol = symbolToUpdate;
         }
     }
+
     public static void userRelocate(double lon, double lat, SymbolManager symbolManager) {
         userLoc.setLatLng(new LatLng(lat, lon));
         symbolManager.update(userLoc);
     }
-    public static void updateSymbol(String name, SymbolManager symbolManager) {
-        Log.i("symbols", String.valueOf(symbols));
+
+    public static int updateSymbol(String name, SymbolManager symbolManager, Button routeButton, List<PoiGeoJsonObject> poiList) {
         for (Symbol symbol : symbols) {
-            if (symbol.getTextField().equals(name)) {
-                Log.i("Symbol", String.valueOf(symbol));
-                symbol.setIconImage("redMarker");
-                symbolManager.update(symbol);
-                break;
+            String symbolName = symbol.getTextField();
+            if(name!=null & symbolName!=null) {
+                if (symbolName.equalsIgnoreCase(name)) {
+                    if (lastClickedSymbol != null) {
+                        lastClickedSymbol.setIconImage("marker");
+                    }
+                    symbol.setIconImage("redMarker");
+                    symbolManager.update(symbol);
+                    lastClickedSymbol = symbol;
+                    if (routeButton.getVisibility() != View.VISIBLE) {
+                        MapSetupActivity.showView(routeButton);
+                    }
+                    for (PoiGeoJsonObject poi: poiList){
+                        if(Objects.requireNonNull(poi.props.get("Name")).equalsIgnoreCase((symbolName+"_lvl_0"))){
+                            return Integer.parseInt(String.valueOf(poi.props.get("Nav")));
+                        }
+                    }
+                }
             }
         }
+        return -1;
     }
 
     public static void userMarkRotate(double azimuth, SymbolManager symbolManager) {

@@ -30,6 +30,8 @@ import androidx.camera.view.PreviewView;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 import androidx.lifecycle.LifecycleOwner;
+import androidx.appcompat.widget.SearchView;
+
 
 import com.example.indoorroutefinder.utils.common.CommonActivity;
 import com.example.indoorroutefinder.utils.connection.BluetoothManagerActivity;
@@ -220,17 +222,19 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         initButton.setOnClickListener(view -> MapSetupActivity.setInitialCamera(mapboxMap));
         NavigationActivity.initNav(MapSetupActivity.loadJsonFromAsset(goeFileName, getAssets()));
         routeButton.setOnClickListener(view -> {
-            if (routeButton.getText() == getResources().getText(R.string.calc_route)) {
-                NavigationActivity.displayRoute(1, destination, mapboxMap);
-                routeButton.setText(R.string.cancel_route);
-            } else {
-                NavigationActivity.removeRoute(mapboxMap);
-                MapSetupActivity.hideView(routeButton);
-                txtView.setText("");
-                POISelectionActivity.toggleMarker(null, symbolManager);
+            if (destination!=-1) {
+                if (routeButton.getText().equals(getResources().getText(R.string.calc_route))) {
+                    NavigationActivity.displayRoute(1, destination, mapboxMap);
+                    routeButton.setText(R.string.cancel_route);
+                } else {
+                    NavigationActivity.removeRoute(mapboxMap);
+                    MapSetupActivity.hideView(routeButton);
+                    txtView.setText("");
+                    POISelectionActivity.toggleMarker(null, symbolManager);
+                }
             }
         });
-        SearchActivity.handleSearch(findViewById(R.id.search_view), symbolManager);
+        handleSearch(findViewById(R.id.search_view), symbolManager, routeButton, poiList);
 
 //        initButton.setOnClickListener(view -> MapSetupActivity.setInitialCamera(mapboxMap));
 //        NavigationActivity.initNav(MapSetupActivity.loadJsonFromAsset(goeFileName, getAssets()));
@@ -245,7 +249,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     @RequiresApi(api = Build.VERSION_CODES.N)
     private void loadSymbols(Style style) {
         symbolManager = new SymbolManager(mapView, mapboxMap, style);
-        symbolManager.setIconAllowOverlap(false);
+        symbolManager.setIconAllowOverlap(true);
         symbolManager.setTextAllowOverlap(true);
         symbolManager.addClickListener(symbol -> {
             POISelectionActivity.toggleMarker(symbol, symbolManager);
@@ -338,5 +342,23 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     @Override
     public void onAccuracyChanged(Sensor sensor, int i) {
 
+    }
+
+    public void handleSearch(SearchView searchView, SymbolManager symbolManager, Button routeB, List<PoiGeoJsonObject> poiList){
+        searchView.setIconifiedByDefault(false);
+        searchView.setQueryHint("Search here ......");
+        searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
+            @RequiresApi(api = Build.VERSION_CODES.N)
+            @Override
+            public boolean onQueryTextSubmit(String query) {
+                String location = searchView.getQuery().toString().trim();
+                destination = POISelectionActivity.updateSymbol(location, symbolManager, routeB, poiList);
+                return false;
+            }
+            @Override
+            public boolean onQueryTextChange(String newText) {
+                return false;
+            }
+        });
     }
 }
