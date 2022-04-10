@@ -13,6 +13,7 @@ import android.hardware.SensorManager;
 import android.os.Build;
 import android.os.Bundle;
 import android.util.Log;
+import android.util.Size;
 import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
@@ -24,6 +25,7 @@ import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.camera.core.Camera;
 import androidx.camera.core.CameraSelector;
+import androidx.camera.core.ImageAnalysis;
 import androidx.camera.core.Preview;
 import androidx.camera.lifecycle.ProcessCameraProvider;
 import androidx.camera.view.PreviewView;
@@ -33,6 +35,8 @@ import androidx.lifecycle.LifecycleOwner;
 import androidx.appcompat.widget.SearchView;
 
 
+import com.example.indoorroutefinder.utils.QRReader.QRCodeFoundListener;
+import com.example.indoorroutefinder.utils.QRReader.QRCodeImageAnalyzer;
 import com.example.indoorroutefinder.utils.common.CommonActivity;
 import com.example.indoorroutefinder.utils.connection.BluetoothManagerActivity;
 import com.example.indoorroutefinder.utils.map.MapSetupActivity;
@@ -59,12 +63,13 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     private MapView mapView;
     private MapboxMap mapboxMap;
     private Style loadedStyle;
-    String goeFileName = "convention_hall_lvl_0_Nav_2.geojson";
+    String goeFileName = "convention_hall_lvl_0_Nav_3.geojson";
     private SymbolManager symbolManager;
     private static List<PoiGeoJsonObject> poiList = null;
     private Button routeButton;
     private Button initButton;
     private Button bluetooth_button;
+    private Button cameraButton;
     private TextView txtView;
     private int destination;
     private static final int REQUEST_ENABLE_BT = 0;
@@ -77,15 +82,18 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     private static final int PERMISSION_REQUEST_CAMERA = 0;
     private PreviewView previewView;
     private ListenableFuture<ProcessCameraProvider> cameraProviderFuture;
+    private static ProcessCameraProvider cameraProvider;
+    private String qrCode;
 
     private final BroadcastReceiver receiver = new BroadcastReceiver() {
-        @RequiresApi(api = Build.VERSION_CODES.N)
+        @RequiresApi(api = Build.VERSION_CODES.R)
         @Override
         public void onReceive(Context context, Intent intent) {
             BluetoothManagerActivity.onReceive(context, intent, symbolManager);
         }
     };
 
+    @RequiresApi(api = Build.VERSION_CODES.R)
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -104,9 +112,9 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         mOrientationSensor = mSensorManager.getDefaultSensor(Sensor.TYPE_MAGNETIC_FIELD);
 
         previewView = findViewById(R.id.activity_main_previewView);
+        previewView.setVisibility(View.INVISIBLE);
 
         cameraProviderFuture = ProcessCameraProvider.getInstance(this);
-        requestCamera();
     }
 
     private void requestCamera() {
@@ -134,11 +142,10 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     }
 
 
-
     private void startCamera() {
         cameraProviderFuture.addListener(() -> {
             try {
-                ProcessCameraProvider cameraProvider = cameraProviderFuture.get();
+                cameraProvider = cameraProviderFuture.get();
                 bindCameraPreview(cameraProvider);
             } catch (ExecutionException | InterruptedException e) {
                 Toast.makeText(this, "Error starting camera " + e.getMessage(), Toast.LENGTH_SHORT).show();
@@ -158,7 +165,33 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
 
         preview.setSurfaceProvider(previewView.createSurfaceProvider());
 
-        Camera camera = cameraProvider.bindToLifecycle((LifecycleOwner)this, cameraSelector, preview);
+        ImageAnalysis imageAnalysis =
+                new ImageAnalysis.Builder()
+                        .setTargetResolution(new Size(1280, 720))
+                        .setBackpressureStrategy(ImageAnalysis.STRATEGY_KEEP_ONLY_LATEST)
+                        .build();
+
+        imageAnalysis.setAnalyzer(ContextCompat.getMainExecutor(this), new QRCodeImageAnalyzer(new QRCodeFoundListener() {
+            @Override
+            public void onQRCodeFound(String _qrCode) {
+                qrCode = _qrCode;
+                Log.i("QR reader", _qrCode);
+                findViewById(R.id.search_view).setVisibility(View.VISIBLE);
+                findViewById(R.id.floor_level_buttons).setVisibility(View.VISIBLE);
+                cameraProvider.unbindAll();
+                previewView.setVisibility(View.INVISIBLE);
+//                qrCodeFoundButton.setVisibility(View.VISIBLE);
+                Toast.makeText(getApplicationContext(), "QR: "+_qrCode, Toast.LENGTH_SHORT).show();
+            }
+
+            @Override
+            public void qrCodeNotFound() {
+//                Log.i("QR reader", "QR not found");
+//                qrCodeFoundButton.setVisibility(View.INVISIBLE);
+            }
+        }));
+
+        Camera camera = cameraProvider.bindToLifecycle((LifecycleOwner)this, cameraSelector, imageAnalysis, preview);
     }
 
     @Override
@@ -174,6 +207,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         routeButton = findViewById(R.id.calcRouteButton);
         initButton = findViewById(R.id.initButton);
         txtView = findViewById(R.id.stoleText);
+        cameraButton = findViewById(R.id.cameraButton);
         bluetooth_button = findViewById(R.id.bluetoothOn);
 
         MapSetupActivity.setInitialCamera(mapboxMap);
@@ -184,6 +218,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         MapSetupActivity.loadBuildingLayersIcons(this.loadedStyle, getResources());
 
         bluetooth_button.setOnClickListener(new View.OnClickListener() {
+            @RequiresApi(api = Build.VERSION_CODES.R)
             @Override
             public void onClick(View view) {
                 BluetoothManagerActivity.startDiscovery(context);
@@ -219,10 +254,32 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
 //                }
 //            }
 //        });
+
+
+        cameraButton.setOnClickListener(new View.OnClickListener() {
+            @RequiresApi(api = Build.VERSION_CODES.R)
+            @Override
+            public void onClick(View view) {
+                if (previewView.getVisibility() == View.INVISIBLE) {
+                    previewView.setVisibility(View.VISIBLE);
+                    findViewById(R.id.search_view).setVisibility(View.INVISIBLE);
+                    findViewById(R.id.floor_level_buttons).setVisibility(View.INVISIBLE);
+                    requestCamera();
+                } else if (previewView.getVisibility() == View.VISIBLE) {
+//                    bindCameraPreview(null);
+                    findViewById(R.id.search_view).setVisibility(View.VISIBLE);
+                    findViewById(R.id.floor_level_buttons).setVisibility(View.VISIBLE);
+                    cameraProvider.unbindAll();
+                    previewView.setVisibility(View.INVISIBLE);
+
+                }
+
+            }
+        });
         initButton.setOnClickListener(view -> MapSetupActivity.setInitialCamera(mapboxMap));
         NavigationActivity.initNav(MapSetupActivity.loadJsonFromAsset(goeFileName, getAssets()));
         routeButton.setOnClickListener(view -> {
-            if (destination!=-1) {
+            if (destination != -1) {
                 if (routeButton.getText().equals(getResources().getText(R.string.calc_route))) {
                     NavigationActivity.displayRoute(1, destination, mapboxMap);
                     routeButton.setText(R.string.cancel_route);
@@ -240,6 +297,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
 //        NavigationActivity.initNav(MapSetupActivity.loadJsonFromAsset(goeFileName, getAssets()));
     }
 
+    @RequiresApi(api = Build.VERSION_CODES.R)
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         BluetoothManagerActivity.onActivityResult(requestCode, REQUEST_ENABLE_BT);
@@ -344,7 +402,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
 
     }
 
-    public void handleSearch(SearchView searchView, SymbolManager symbolManager, Button routeB, List<PoiGeoJsonObject> poiList){
+    public void handleSearch(SearchView searchView, SymbolManager symbolManager, Button routeB, List<PoiGeoJsonObject> poiList) {
         searchView.setIconifiedByDefault(false);
         searchView.setQueryHint("Search here ......");
         searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
@@ -355,6 +413,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
                 destination = POISelectionActivity.updateSymbol(location, symbolManager, routeB, poiList);
                 return false;
             }
+
             @Override
             public boolean onQueryTextChange(String newText) {
                 return false;
