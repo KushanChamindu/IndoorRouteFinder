@@ -7,18 +7,24 @@
     android:layout_height="match_parent"
     tools:context=".MainActivity">
 
+    <androidx.camera.view.PreviewView
+        android:id="@+id/activity_main_previewView"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent" />
+
     <com.mapbox.mapboxsdk.maps.MapView
         android:id="@+id/mapView"
         android:layout_width="match_parent"
         android:layout_height="match_parent">
+
         <androidx.appcompat.widget.SearchView
             android:id="@+id/search_view"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_margin="10dp"
-            android:elevation="5dp"
             android:background="@drawable/bg_round"
-            />
+            android:elevation="5dp" />
+
         <LinearLayout
             android:id="@+id/floor_level_buttons"
             android:layout_width="match_parent"
