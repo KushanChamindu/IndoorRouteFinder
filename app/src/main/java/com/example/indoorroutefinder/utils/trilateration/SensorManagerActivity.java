@@ -1,9 +1,7 @@
 package com.example.indoorroutefinder.utils.trilateration;
 
-import android.app.Activity;
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;
-import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
 import android.util.Log;
 
@@ -44,7 +42,6 @@ public class SensorManagerActivity {
             boolean success = SensorManager.getRotationMatrix(inR, I,
                     gravity, geomag);
             if (success) {
-
                 SensorManager.getOrientation(inR, orientVals);
                 azimuth = Math.toDegrees(orientVals[0]);
                 pitch = Math.toDegrees(orientVals[1]);
