@@ -11,7 +11,14 @@
         android:id="@+id/mapView"
         android:layout_width="match_parent"
         android:layout_height="match_parent">
-
+        <androidx.appcompat.widget.SearchView
+            android:id="@+id/search_view"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_margin="10dp"
+            android:elevation="5dp"
+            android:background="@drawable/bg_round"
+            />
         <LinearLayout
             android:id="@+id/floor_level_buttons"
             android:layout_width="match_parent"

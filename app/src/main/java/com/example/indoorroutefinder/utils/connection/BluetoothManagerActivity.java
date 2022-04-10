@@ -10,35 +10,56 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.pm.PackageManager;
+import android.os.Build;
 import android.util.Log;
 import android.widget.Toast;
 
+import androidx.annotation.RequiresApi;
 import androidx.core.app.ActivityCompat;
 
 import com.example.indoorroutefinder.utils.common.CommonActivity;
+import com.example.indoorroutefinder.utils.poiSelection.POISelectionActivity;
 import com.example.indoorroutefinder.utils.trilateration.Point;
 import com.example.indoorroutefinder.utils.trilateration.SensorManagerActivity;
 import com.example.indoorroutefinder.utils.trilateration.Trilateration;
+import com.mapbox.mapboxsdk.plugins.annotation.SymbolManager;
 
+import java.util.ArrayList;
+import java.util.OptionalDouble;
+import java.util.OptionalInt;
 import java.util.Set;
 import java.util.Timer;
 import java.util.TimerTask;
 
 public class BluetoothManagerActivity {
     private static BluetoothAdapter mBluetoothAdapter;
+    private static ArrayList<Integer> rssi_list = new ArrayList<>();
+    private static int count=0;
 
+    @RequiresApi(api = Build.VERSION_CODES.N)
     @SuppressLint("MissingPermission")
-    public static void onReceive(Context context, Intent intent) {
+    public static void onReceive(Context context, Intent intent, SymbolManager symbolManager) {
         String action = intent.getAction();
         Log.i("Bluetooth", "  RSSI: " + action + "dBm");
         if (BluetoothDevice.ACTION_FOUND.equals(action)) {
             int rssi = intent.getShortExtra(BluetoothDevice.EXTRA_RSSI, Short.MIN_VALUE);
+
 //            double distance = ((Math.pow(10,rssi/-20.0)) * 0.125)/(4*Math.PI)/10;
             double distance = Math.pow(10,(rssi + 45.6714)/ (-10*4.7375));
             BluetoothDevice device = intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE);
-            Log.i("Bluetooth", "Device: " + device.getName() + "  RSSI: " + rssi + "dBm \n distance ::" + distance);
-            Toast.makeText(context, "Device: " + device.getName() + "  RSSI: " + rssi + "dBm", Toast.LENGTH_SHORT).show();
-
+//            Log.i("Bluetooth", "Device: " + device.getName() + "  RSSI: " + rssi + "dBm \n distance ::" + distance);
+//            Toast.makeText(context, "Device: " + device.getName() + "  RSSI: " + rssi + "dBm", Toast.LENGTH_SHORT).show();
+            Log.i("Rassi list", String.valueOf(rssi_list));
+            if(count == 30){
+                Double average = rssi_list.stream()
+                        .mapToDouble(d -> d)
+                        .average()
+                        .orElse(0.0);
+                Log.i("Rssi list with 30 item", String.valueOf(average));
+            }else if(device.getName().equals("Anchor 2")){
+                count+=1;
+                rssi_list.add(rssi);
+            }
 
 
             Point p1=new Point(-19.6685,-69.1942,84);
@@ -46,6 +67,7 @@ public class BluetoothManagerActivity {
             Point p3=new Point(-20.5656,-70.1807,120);
             double[] a= Trilateration.Compute(p1,p2,p3);
             Log.i("Trilateration", "LatLon: "+a[0]+", "+a[1]);
+            POISelectionActivity.userRelocate(79.919685 , 6.795557, symbolManager);
         }
     }
 

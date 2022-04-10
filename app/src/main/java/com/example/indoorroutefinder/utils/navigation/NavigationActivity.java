@@ -134,9 +134,8 @@ public class NavigationActivity {
             // add polyline to MapboxMap object
             polyline = mapboxMap.addPolyline(new PolylineOptions()
                     .addAll(points)
-                    .color(Color.RED)
+                    .color(Color.parseColor("#388BC1"))
                     .width(6f)
-
             );
         }
     }
