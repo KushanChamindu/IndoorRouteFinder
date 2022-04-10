@@ -26,6 +26,7 @@ import com.example.indoorroutefinder.utils.map.MapSetupActivity;
 import com.example.indoorroutefinder.utils.navigation.NavigationActivity;
 import com.example.indoorroutefinder.utils.poiSelection.POISelectionActivity;
 import com.example.indoorroutefinder.utils.poiSelection.PoiGeoJsonObject;
+import com.example.indoorroutefinder.utils.search.SearchActivity;
 import com.example.indoorroutefinder.utils.trilateration.SensorManagerActivity;
 import com.mapbox.mapboxsdk.Mapbox;
 import com.mapbox.mapboxsdk.maps.MapView;
@@ -60,9 +61,10 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     private SensorManagerActivity sensorManagerActivity = new SensorManagerActivity();
 
     private final BroadcastReceiver receiver = new BroadcastReceiver() {
+        @RequiresApi(api = Build.VERSION_CODES.N)
         @Override
         public void onReceive(Context context, Intent intent) {
-            BluetoothManagerActivity.onReceive(context, intent);
+            BluetoothManagerActivity.onReceive(context, intent, symbolManager);
         }
     };
 
@@ -155,6 +157,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
                 POISelectionActivity.toggleMarker(null, symbolManager);
             }
         });
+        SearchActivity.handleSearch(findViewById(R.id.search_view), symbolManager);
 
 //        initButton.setOnClickListener(view -> MapSetupActivity.setInitialCamera(mapboxMap));
 //        NavigationActivity.initNav(MapSetupActivity.loadJsonFromAsset(goeFileName, getAssets()));
@@ -188,6 +191,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
             ).collect(Collectors.toList()).get(0);
             destination = Integer.parseInt(String.valueOf(poi.props.get("Nav")));
         });
+
     }
 
     @Override
@@ -224,6 +228,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         if (mapView != null) {
             mapView.onStop();
         }
+        mSensorManager.unregisterListener(this);
     }
 
     @Override
@@ -241,6 +246,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         if (mapView != null) {
             mapView.onDestroy();
         }
+        mSensorManager.unregisterListener(this);
     }
 
     @Override
