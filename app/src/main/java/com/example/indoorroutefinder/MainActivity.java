@@ -453,7 +453,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     }
 
 
-    public void handleSearch(SearchView searchView, SymbolManager symbolManager, Button routeB, List<PoiGeoJsonObject> poiList){
+    public void handleSearch(SearchView searchView, SymbolManager symbolManager, Button routeB, List<PoiGeoJsonObject> poiList) {
         searchView.setIconifiedByDefault(true);
         searchView.setQueryHint("Search here .....");
         searchView.onWindowFocusChanged(false);
@@ -462,43 +462,51 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
             @RequiresApi(api = Build.VERSION_CODES.N)
             @Override
             public boolean onQueryTextSubmit(String query) {
-                String location = searchView.getQuery().toString().trim();  
+                String location = searchView.getQuery().toString().trim();
 //                 destination = POISelectionActivity.updateSymbol(location, symbolManager, routeB, poiList, context);
 //                 if(destination==-1){
 //                     Toast.makeText(context, "Search location not found", Toast.LENGTH_SHORT).show();
 //                 }
 //                 searchView.setQuery("", false);
 //                 searchView.setIconified(true);
+                ArrayList<Object> result = POISelectionActivity.updateSymbol(location, symbolManager, routeB, poiList);
+                if ((Integer) result.get(0) == -1) {
+                    Toast.makeText(context, "Search location not found", Toast.LENGTH_SHORT).show();
+                    searchView.setQuery("", false);
+                    searchView.setIconified(true);
+                    return false;
+                } else {
 
-                if (isRouteDisplay) {
-                    isRouteDisplay = false;
-                    NavigationActivity.removeRoute(mapboxMap);
-                    MapSetupActivity.hideView(routeB);
-                    txtView.setText("");
-                    POISelectionActivity.toggleMarker(null, symbolManager);
-                    scr_loc = null;
-                    des_loc = null;
-                }
-                if (scr_loc == null) {
-                    ArrayList<Object> result = POISelectionActivity.updateSymbol(location, symbolManager, routeB, poiList);
-                    scource = (Integer) result.get(0);
-                    scr_loc = (Symbol) result.get(1);
-                } else if (des_loc == null) {
-                    ArrayList<Object> result = POISelectionActivity.updateSymbol(location, symbolManager, routeB, poiList);
-                    destination = (Integer) result.get(0);
-                    des_loc = (Symbol) result.get(1);
-                }
-                if (scr_loc != null && des_loc != null) {
-                    if (routeButton.getVisibility() != View.VISIBLE) {
-                        MapSetupActivity.showView(routeButton);
+                    if (isRouteDisplay) {
+                        isRouteDisplay = false;
+                        NavigationActivity.removeRoute(mapboxMap);
+                        MapSetupActivity.hideView(routeB);
+                        txtView.setText("");
+                        POISelectionActivity.toggleMarker(null, symbolManager);
+                        scr_loc = null;
+                        des_loc = null;
                     }
-                    if (routeButton.getText().equals(getResources().getText(R.string.cancel_route))) {
-                        routeButton.setText(R.string.calc_route);
+                    if (scr_loc == null) {
+                        scource = (Integer) result.get(0);
+                        scr_loc = (Symbol) result.get(1);
+                    } else if (des_loc == null) {
+                        destination = (Integer) result.get(0);
+                        des_loc = (Symbol) result.get(1);
                     }
-                    scr_loc = null;
-                    des_loc = null;
+                    if (scr_loc != null && des_loc != null) {
+                        if (routeButton.getVisibility() != View.VISIBLE) {
+                            MapSetupActivity.showView(routeButton);
+                        }
+                        if (routeButton.getText().equals(getResources().getText(R.string.cancel_route))) {
+                            routeButton.setText(R.string.calc_route);
+                        }
+                        scr_loc = null;
+                        des_loc = null;
+                    }
+                    searchView.setQuery("", false);
+                    searchView.setIconified(true);
+                    return false;
                 }
-                return false;
             }
 
             @Override

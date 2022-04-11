@@ -25,7 +25,7 @@ public class SearchActivity {
             @Override
             public boolean onQueryTextSubmit(String query) {
                 String location = searchView.getQuery().toString();
-                POISelectionActivity.updateSymbol(location, symbolManager, routeB, poiList, context);
+//                POISelectionActivity.updateSymbol(location, symbolManager, routeB, poiList, context);
                 return false;
             }
             @Override
