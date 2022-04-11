@@ -55,9 +55,10 @@ public class POISelectionActivity {
                                     .withIconImage("marker")
 //                            .withTextField((String) properties.get("Name"))
                                     .withTextField(pointName.substring(0, 1).toUpperCase() + pointName.substring(1))
+                                    .withTextSize(12f)
                                     .withTextAnchor("top")
                                     .withTextOffset(new Float[]{0f, 1.5f})
-                                    .withIconSize(1f)
+                                    .withIconSize(0.7f)
                                     .withIconOffset(new Float[]{0f, -1.5f})
                     );
                 }
@@ -67,7 +68,7 @@ public class POISelectionActivity {
                     .withIconImage("UserLoc")
                     .withTextField("")
                     .withTextOffset(new Float[]{0f, 1.5f})
-                    .withIconSize(1f)
+                    .withIconSize(0.8f)
                     .withIconOffset(new Float[]{0f, -1.5f}));
             symbols = symbolManager.create(options);
             userLoc = symbols.get(symbols.size() - 1);
