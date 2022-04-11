@@ -1,0 +1,446 @@
+{
+  "features": [
+    {
+      "type": "Feature",
+      "properties": {
+        "Name": "stole2_lvl_0",
+        "point-type": "stole",
+        "Nav": 13
+      },
+      "geometry": {
+        "coordinates": [
+          79.919812,
+          6.795564
+        ],
+        "type": "Point"
+      },
+      "id": "07f4576eb439063b9c8e98118206d714"
+    },
+    {
+      "type": "Feature",
+      "properties": {},
+      "geometry": {
+        "coordinates": [
+          [
+            79.919705,
+            6.795575
+          ],
+          [
+            79.91978,
+            6.79559
+          ],
+          [
+            79.919785,
+            6.795573
+          ]
+        ],
+        "type": "LineString"
+      },
+      "id": "164d74154b079f7ac600975f25c5eaf7"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "point-type": "NavPoint",
+        "Nav": 12
+      },
+      "geometry": {
+        "coordinates": [
+          79.919791,
+          6.795568
+        ],
+        "type": "Point"
+      },
+      "id": "166873b276bf82990dc2844f710b8521"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "Name": "stole1_lvl_0",
+        "point-type": "stole",
+        "Nav": 8
+      },
+      "geometry": {
+        "coordinates": [
+          79.919745,
+          6.795557
+        ],
+        "type": "Point"
+      },
+      "id": "170dd8211c08038181c27677109dc230"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "Name": "garden_lvl_0",
+        "point-type": "stole",
+        "Nav": 5
+      },
+      "geometry": {
+        "coordinates": [
+          79.919698,
+          6.79554
+        ],
+        "type": "Point"
+      },
+      "id": "24df4df9d0ac8f70db736c6b8f0455f6"
+    },
+    {
+      "type": "Feature",
+      "properties": {},
+      "geometry": {
+        "coordinates": [
+          [
+            79.919779,
+            6.795591
+          ],
+          [
+            79.919778,
+            6.795608
+          ]
+        ],
+        "type": "LineString"
+      },
+      "id": "2cf96f7fc3d5281b67ed0d49896246d7"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "point-type": "NavPoint",
+        "Nav": 1
+      },
+      "geometry": {
+        "coordinates": [
+          79.919668,
+          6.795594
+        ],
+        "type": "Point"
+      },
+      "id": "2ef0c0a1ed0ae72c70b26dfc806a555c"
+    },
+    {
+      "type": "Feature",
+      "properties": {},
+      "geometry": {
+        "coordinates": [
+          [
+            79.919792,
+            6.795585
+          ],
+          [
+            79.919824,
+            6.795592
+          ]
+        ],
+        "type": "LineString"
+      },
+      "id": "3f8b45c6a16dcd55a88f2e925b623954"
+    },
+    {
+      "type": "Feature",
+      "properties": {},
+      "geometry": {
+        "coordinates": [
+          [
+            79.919723,
+            6.795522
+          ],
+          [
+            79.919722,
+            6.795525
+          ]
+        ],
+        "type": "LineString"
+      },
+      "id": "49b97d1de15c152eda53fd644708ca93"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "point-type": "NavPoint",
+        "Nav": 16
+      },
+      "geometry": {
+        "coordinates": [
+          79.919779,
+          6.795614
+        ],
+        "type": "Point"
+      },
+      "id": "77830a345eab7be1051ffe84cd0d5f33"
+    },
+    {
+      "type": "Feature",
+      "properties": {},
+      "geometry": {
+        "coordinates": [
+          [
+            79.919789,
+            6.795561
+          ],
+          [
+            79.919796,
+            6.795534
+          ]
+        ],
+        "type": "LineString"
+      },
+      "id": "7dcd1e1ce6a460e8af1013c8bc6d6115"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "point-type": "NavPoint",
+        "Nav": 14
+      },
+      "geometry": {
+        "coordinates": [
+          79.919787,
+          6.795584
+        ],
+        "type": "Point"
+      },
+      "id": "8a1f9be2879119c7cab2504d88055348"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "point-type": "NavPoint",
+        "Nav": 7
+      },
+      "geometry": {
+        "coordinates": [
+          79.919719,
+          6.795531
+        ],
+        "type": "Point"
+      },
+      "id": "9278d36bbc2476c8dc05ac864ad0bbee"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "Name": "garage_lvl_0",
+        "point-type": "stole",
+        "Nav": 3
+      },
+      "geometry": {
+        "coordinates": [
+          79.919684,
+          6.795585
+        ],
+        "type": "Point"
+      },
+      "id": "9284b1d7105a50a7cf5c7839e91e004f"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "point-type": "NavPoint",
+        "Nav": 4
+      },
+      "geometry": {
+        "coordinates": [
+          79.919702,
+          6.795559
+        ],
+        "type": "Point"
+      },
+      "id": "979b96ee2d6f51cc1b6c3033d27a5cc8"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "point-type": "NavPoint",
+        "Nav": 10
+      },
+      "geometry": {
+        "coordinates": [
+          79.919783,
+          6.795542
+        ],
+        "type": "Point"
+      },
+      "id": "9dba6f505d620c7981cb29372a71eca7"
+    },
+    {
+      "type": "Feature",
+      "properties": {},
+      "geometry": {
+        "coordinates": [
+          [
+            79.91968,
+            6.795553
+          ],
+          [
+            79.919696,
+            6.795557
+          ]
+        ],
+        "type": "LineString"
+      },
+      "id": "9fc70ddf1879c01b24f254b5c8c5ce57"
+    },
+    {
+      "type": "Feature",
+      "properties": {},
+      "geometry": {
+        "coordinates": [
+          [
+            79.919691,
+            6.795615
+          ],
+          [
+            79.919718,
+            6.795537
+          ]
+        ],
+        "type": "LineString"
+      },
+      "id": "a31d1aaa25835c246e952b38aede4c0c"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "Nav": 6,
+        "point-type": "NavPoint"
+      },
+      "geometry": {
+        "coordinates": [
+          79.919711,
+          6.795529
+        ],
+        "type": "Point"
+      },
+      "id": "bc4ed5d6e8383cf47c98eab4a7379c57"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "Nav": 9,
+        "point-type": "NavPoint"
+      },
+      "geometry": {
+        "coordinates": [
+          79.919751,
+          6.795536
+        ],
+        "type": "Point"
+      },
+      "id": "c178c99ddafe0f2dc763487922a6ee2d"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "Name": "stole4_lvl_0",
+        "point-type": "stole",
+        "Nav": 17
+      },
+      "geometry": {
+        "coordinates": [
+          79.919729,
+          6.795608
+        ],
+        "type": "Point"
+      },
+      "id": "d6baba46e6ccd076b7e09cb14e8fc2da"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "point-type": "NavPoint",
+        "Nav": 2
+      },
+      "geometry": {
+        "coordinates": [
+          79.919688,
+          6.795601
+        ],
+        "type": "Point"
+      },
+      "id": "ea6db53b29f0eef00485eb262b2f53ac"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "Name": "stole3_lvl_0",
+        "point-type": "stole",
+        "Nav": 15
+      },
+      "geometry": {
+        "coordinates": [
+          79.919802,
+          6.795619
+        ],
+        "type": "Point"
+      },
+      "id": "f0fa4281554d39dcca3acdba8c347848"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "Nav": 11,
+        "point-type": "NavPoint"
+      },
+      "geometry": {
+        "coordinates": [
+          79.919779,
+          6.795565
+        ],
+        "type": "Point"
+      },
+      "id": "f17c0bf75775c8f31f840d08ec983180"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "Name": "boundry"
+      },
+      "geometry": {
+        "coordinates": [
+          [
+            79.919664,
+            6.795609
+          ],
+          [
+            79.919817,
+            6.795643
+          ],
+          [
+            79.919829,
+            6.795538
+          ],
+          [
+            79.91969,
+            6.795515
+          ],
+          [
+            79.919664,
+            6.795609
+          ]
+        ],
+        "type": "LineString"
+      },
+      "id": "f707eb1ec39f2fffbc886b844561c0db"
+    },
+    {
+      "type": "Feature",
+      "properties": {},
+      "geometry": {
+        "coordinates": [
+          [
+            79.919777,
+            6.795634
+          ],
+          [
+            79.919778,
+            6.795619
+          ]
+        ],
+        "type": "LineString"
+      },
+      "id": "fb8fa47fce08f6301a92930e39629e41"
+    }
+  ],
+  "type": "FeatureCollection"
+}

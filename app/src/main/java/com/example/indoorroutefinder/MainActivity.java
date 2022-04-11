@@ -1,9 +1,11 @@
 package com.example.indoorroutefinder;
 
+import android.Manifest;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.content.pm.PackageManager;
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
@@ -11,6 +13,7 @@ import android.hardware.SensorManager;
 import android.os.Build;
 import android.os.Bundle;
 import android.util.Log;
+import android.util.Size;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
@@ -22,8 +25,20 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.camera.core.Camera;
+import androidx.camera.core.CameraSelector;
+import androidx.camera.core.ImageAnalysis;
+import androidx.camera.core.Preview;
+import androidx.camera.lifecycle.ProcessCameraProvider;
+import androidx.camera.view.PreviewView;
+import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
+import androidx.lifecycle.LifecycleOwner;
 import androidx.appcompat.widget.SearchView;
 
+
+import com.example.indoorroutefinder.utils.QRReader.QRCodeFoundListener;
+import com.example.indoorroutefinder.utils.QRReader.QRCodeImageAnalyzer;
 import com.example.indoorroutefinder.utils.common.CommonActivity;
 import com.example.indoorroutefinder.utils.connection.BluetoothManagerActivity;
 import com.example.indoorroutefinder.utils.map.MapSetupActivity;
@@ -31,15 +46,19 @@ import com.example.indoorroutefinder.utils.navigation.NavigationActivity;
 import com.example.indoorroutefinder.utils.poiSelection.POISelectionActivity;
 import com.example.indoorroutefinder.utils.poiSelection.PoiGeoJsonObject;
 import com.example.indoorroutefinder.utils.trilateration.SensorManagerActivity;
+import com.google.common.util.concurrent.ListenableFuture;
 import com.mapbox.mapboxsdk.Mapbox;
 import com.mapbox.mapboxsdk.maps.MapView;
 import com.mapbox.mapboxsdk.maps.MapboxMap;
 import com.mapbox.mapboxsdk.maps.OnMapReadyCallback;
 import com.mapbox.mapboxsdk.maps.Style;
+import com.mapbox.mapboxsdk.plugins.annotation.Symbol;
 import com.mapbox.mapboxsdk.plugins.annotation.SymbolManager;
 import com.mapbox.mapboxsdk.style.sources.GeoJsonSource;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.ExecutionException;
 import java.util.stream.Collectors;
 
 public class MainActivity extends AppCompatActivity implements SensorEventListener, OnMapReadyCallback, Style.OnStyleLoaded {
@@ -47,15 +66,18 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     private MapView mapView;
     private MapboxMap mapboxMap;
     private Style loadedStyle;
-    String goeFileName = "convention_hall_lvl_0_Nav_2.geojson";
+    String goeFileName = "convention_hall_lvl_0_Nav_3.geojson";
     private SymbolManager symbolManager;
     private static List<PoiGeoJsonObject> poiList = null;
+    private static List<PoiGeoJsonObject> NavList = null;
     private Button routeButton;
     private ImageButton initButton;
     private Button bluetooth_button;
+    private Button cameraButton;
     private TextView txtView;
     private SearchView searchView;
     private int destination;
+    private int scource;
     private static final int REQUEST_ENABLE_BT = 0;
     private static final int REQUEST_DISCOVER_BT = 1;
     private Context context;
@@ -63,15 +85,24 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     private Sensor mAccelerometer;
     private Sensor mOrientationSensor;
     private SensorManagerActivity sensorManagerActivity = new SensorManagerActivity();
+    private static final int PERMISSION_REQUEST_CAMERA = 0;
+    private PreviewView previewView;
+    private ListenableFuture<ProcessCameraProvider> cameraProviderFuture;
+    private static ProcessCameraProvider cameraProvider;
+    private String qrCode;
+    private Symbol scr_loc;
+    private Symbol des_loc;
+    private boolean isRouteDisplay = false;
 
     private final BroadcastReceiver receiver = new BroadcastReceiver() {
-        @RequiresApi(api = Build.VERSION_CODES.N)
+        @RequiresApi(api = Build.VERSION_CODES.R)
         @Override
         public void onReceive(Context context, Intent intent) {
             BluetoothManagerActivity.onReceive(context, intent, symbolManager);
         }
     };
 
+    @RequiresApi(api = Build.VERSION_CODES.R)
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -88,6 +119,90 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         mSensorManager = (SensorManager) getSystemService(SENSOR_SERVICE);
         mAccelerometer = mSensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
         mOrientationSensor = mSensorManager.getDefaultSensor(Sensor.TYPE_MAGNETIC_FIELD);
+
+        previewView = findViewById(R.id.activity_main_previewView);
+        previewView.setVisibility(View.INVISIBLE);
+
+        cameraProviderFuture = ProcessCameraProvider.getInstance(this);
+    }
+
+    private void requestCamera() {
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED) {
+            startCamera();
+        } else {
+            if (ActivityCompat.shouldShowRequestPermissionRationale(this, Manifest.permission.CAMERA)) {
+                ActivityCompat.requestPermissions(MainActivity.this, new String[]{Manifest.permission.CAMERA}, PERMISSION_REQUEST_CAMERA);
+            } else {
+                ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.CAMERA}, PERMISSION_REQUEST_CAMERA);
+            }
+        }
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        if (requestCode == PERMISSION_REQUEST_CAMERA) {
+            if (grantResults.length == 1 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                startCamera();
+            } else {
+                Toast.makeText(this, "Camera Permission Denied", Toast.LENGTH_SHORT).show();
+            }
+        }
+    }
+
+    private void startCamera() {
+        cameraProviderFuture.addListener(() -> {
+            try {
+                cameraProvider = cameraProviderFuture.get();
+                bindCameraPreview(cameraProvider);
+            } catch (ExecutionException | InterruptedException e) {
+                Toast.makeText(this, "Error starting camera " + e.getMessage(), Toast.LENGTH_SHORT).show();
+            }
+        }, ContextCompat.getMainExecutor(this));
+    }
+
+    private void bindCameraPreview(@NonNull ProcessCameraProvider cameraProvider) {
+        previewView.setPreferredImplementationMode(PreviewView.ImplementationMode.SURFACE_VIEW);
+
+        Preview preview = new Preview.Builder()
+                .build();
+
+        CameraSelector cameraSelector = new CameraSelector.Builder()
+                .requireLensFacing(CameraSelector.LENS_FACING_BACK)
+                .build();
+
+        preview.setSurfaceProvider(previewView.createSurfaceProvider());
+
+        ImageAnalysis imageAnalysis =
+                new ImageAnalysis.Builder()
+                        .setTargetResolution(new Size(1280, 720))
+                        .setBackpressureStrategy(ImageAnalysis.STRATEGY_KEEP_ONLY_LATEST)
+                        .build();
+
+        imageAnalysis.setAnalyzer(ContextCompat.getMainExecutor(this), new QRCodeImageAnalyzer(new QRCodeFoundListener() {
+            @Override
+            public void onQRCodeFound(String _qrCode) {
+                qrCode = _qrCode;
+                Log.i("QR reader", _qrCode);
+                findViewById(R.id.search_view).setVisibility(View.VISIBLE);
+                findViewById(R.id.floor_level_buttons).setVisibility(View.VISIBLE);
+                cameraProvider.unbindAll();
+                previewView.setVisibility(View.INVISIBLE);
+//                qrCodeFoundButton.setVisibility(View.VISIBLE);
+                Toast.makeText(getApplicationContext(), "QR: " + _qrCode, Toast.LENGTH_SHORT).show();
+                double lat = Double.parseDouble(qrCode.split(",")[0]);
+                double lon = Double.parseDouble(qrCode.split(",")[1]);
+                POISelectionActivity.userRelocate(lat, lon, symbolManager);
+            }
+
+            @Override
+            public void qrCodeNotFound() {
+//                Log.i("QR reader", "QR not found");
+//                qrCodeFoundButton.setVisibility(View.INVISIBLE);
+            }
+        }));
+
+        Camera camera = cameraProvider.bindToLifecycle((LifecycleOwner) this, cameraSelector, imageAnalysis, preview);
     }
 
     @Override
@@ -103,6 +218,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         routeButton = findViewById(R.id.calcRouteButton);
         initButton = findViewById(R.id.initButton);
         txtView = findViewById(R.id.stoleText);
+        cameraButton = findViewById(R.id.cameraButton);
         bluetooth_button = findViewById(R.id.bluetoothOn);
         searchView = findViewById(R.id.search_view);
 
@@ -114,6 +230,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         MapSetupActivity.loadBuildingLayersIcons(this.loadedStyle, getResources());
 
         bluetooth_button.setOnClickListener(new View.OnClickListener() {
+            @RequiresApi(api = Build.VERSION_CODES.R)
             @Override
             public void onClick(View view) {
                 BluetoothManagerActivity.startDiscovery(context);
@@ -147,14 +264,38 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
 //                }
 //            }
 //        });
+
+
+        cameraButton.setOnClickListener(new View.OnClickListener() {
+            @RequiresApi(api = Build.VERSION_CODES.R)
+            @Override
+            public void onClick(View view) {
+                if (previewView.getVisibility() == View.INVISIBLE) {
+                    previewView.setVisibility(View.VISIBLE);
+                    findViewById(R.id.search_view).setVisibility(View.INVISIBLE);
+                    findViewById(R.id.floor_level_buttons).setVisibility(View.INVISIBLE);
+                    requestCamera();
+                } else if (previewView.getVisibility() == View.VISIBLE) {
+//                    bindCameraPreview(null);
+                    findViewById(R.id.search_view).setVisibility(View.VISIBLE);
+                    findViewById(R.id.floor_level_buttons).setVisibility(View.VISIBLE);
+                    cameraProvider.unbindAll();
+                    previewView.setVisibility(View.INVISIBLE);
+
+                }
+
+            }
+        });
         initButton.setOnClickListener(view -> MapSetupActivity.setInitialCamera(mapboxMap));
         NavigationActivity.initNav(MapSetupActivity.loadJsonFromAsset(goeFileName, getAssets()));
         routeButton.setOnClickListener(view -> {
-            if (destination!=-1) {
+            if (destination != -1) {
                 if (routeButton.getText().equals(getResources().getText(R.string.calc_route))) {
-                    NavigationActivity.displayRoute(1, destination, mapboxMap);
+                    NavigationActivity.displayRoute(scource, destination, mapboxMap);
+                    isRouteDisplay = true;
                     routeButton.setText(R.string.cancel_route);
                 } else {
+                    isRouteDisplay = false;
                     NavigationActivity.removeRoute(mapboxMap);
                     MapSetupActivity.hideView(routeButton);
                     txtView.setText("");
@@ -166,10 +307,14 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         mapboxMap.getUiSettings().setCompassEnabled(false);
         handleSearch(searchView, symbolManager, routeButton, poiList);
 
+        NavList = NavigationActivity.getNavPoints();
+
+
 //        initButton.setOnClickListener(view -> MapSetupActivity.setInitialCamera(mapboxMap));
 //        NavigationActivity.initNav(MapSetupActivity.loadJsonFromAsset(goeFileName, getAssets()));
     }
 
+    @RequiresApi(api = Build.VERSION_CODES.R)
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         BluetoothManagerActivity.onActivityResult(requestCode, REQUEST_ENABLE_BT);
@@ -178,25 +323,58 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
 
     @RequiresApi(api = Build.VERSION_CODES.N)
     private void loadSymbols(Style style) {
+
         symbolManager = new SymbolManager(mapView, mapboxMap, style);
         symbolManager.setIconAllowOverlap(true);
         symbolManager.setTextAllowOverlap(true);
         symbolManager.addClickListener(symbol -> {
-            POISelectionActivity.toggleMarker(symbol, symbolManager);
-            if (routeButton.getVisibility() != View.VISIBLE) {
-                MapSetupActivity.showView(routeButton);
+            PoiGeoJsonObject scr_poi = null;
+            PoiGeoJsonObject des_poi = null;
+            if (scr_loc == null) {
+                if (isRouteDisplay) {
+                    isRouteDisplay = false;
+                    NavigationActivity.removeRoute(mapboxMap);
+                    MapSetupActivity.hideView(routeButton);
+                    txtView.setText("");
+                    POISelectionActivity.toggleMarker(null, symbolManager);
+                }
+                scr_loc = symbol;
+                POISelectionActivity.toggleMarker(symbol, symbolManager);
+            } else if (des_loc == null) {
+                des_loc = symbol;
+                POISelectionActivity.toggleMarker(symbol, symbolManager);
+            } else if (scr_loc.equals(des_loc)) {
+                POISelectionActivity.toggleMarker(symbol, symbolManager);
             }
-            if (routeButton.getText().equals(getResources().getText(R.string.cancel_route))) {
-                routeButton.setText(R.string.calc_route);
+//            if(scr_loc.equals())
+            if (scr_loc != null && des_loc != null) {
+                if (routeButton.getVisibility() != View.VISIBLE) {
+                    MapSetupActivity.showView(routeButton);
+                }
+                if (routeButton.getText().equals(getResources().getText(R.string.cancel_route))) {
+                    routeButton.setText(R.string.calc_route);
+                }
+                NavigationActivity.removeRoute(mapboxMap);
+                txtView.setText(symbol.getTextField());
+                // Toast.makeText(getApplicationContext(), "Displaying route to " + symbol.getTextField(), Toast.LENGTH_SHORT).show();
+                scr_poi = NavList.stream().filter(obj ->
+                        String.valueOf(obj.coordinates.get(0)).equals(String.valueOf(scr_loc.getGeometry().longitude()))
+                                && String.valueOf(obj.coordinates.get(1)).equals(String.valueOf(scr_loc.getGeometry().latitude()))
+                ).collect(Collectors.toList()).get(0);
+                des_poi = NavList.stream().filter(obj ->
+                        String.valueOf(obj.coordinates.get(0)).equals(String.valueOf(des_loc.getGeometry().longitude()))
+                                && String.valueOf(obj.coordinates.get(1)).equals(String.valueOf(des_loc.getGeometry().latitude()))
+                ).collect(Collectors.toList()).get(0);
+                scr_loc = null;
+                des_loc = null;
             }
-            NavigationActivity.removeRoute(mapboxMap);
-            txtView.setText(symbol.getTextField());
-            // Toast.makeText(getApplicationContext(), "Displaying route to " + symbol.getTextField(), Toast.LENGTH_SHORT).show();
-            PoiGeoJsonObject poi = poiList.stream().filter(obj ->
-                    String.valueOf(obj.coordinates.get(0)).equals(String.valueOf(symbol.getGeometry().longitude()))
-                            && String.valueOf(obj.coordinates.get(1)).equals(String.valueOf(symbol.getGeometry().latitude()))
-            ).collect(Collectors.toList()).get(0);
-            destination = Integer.parseInt(String.valueOf(poi.props.get("Nav")));
+            if (scr_poi != null && des_poi != null) {
+                destination = Integer.parseInt(String.valueOf(des_poi.props.get("Nav")));
+                scource = Integer.parseInt(String.valueOf(scr_poi.props.get("Nav")));
+                scr_poi = null;
+                des_poi = null;
+
+            }
         });
 
     }
@@ -274,6 +452,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
 
     }
 
+
     public void handleSearch(SearchView searchView, SymbolManager symbolManager, Button routeB, List<PoiGeoJsonObject> poiList){
         searchView.setIconifiedByDefault(true);
         searchView.setQueryHint("Search here .....");
@@ -283,15 +462,45 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
             @RequiresApi(api = Build.VERSION_CODES.N)
             @Override
             public boolean onQueryTextSubmit(String query) {
-                String location = searchView.getQuery().toString().trim();
-                destination = POISelectionActivity.updateSymbol(location, symbolManager, routeB, poiList, context);
-                if(destination==-1){
-                    Toast.makeText(context, "Search location not found", Toast.LENGTH_SHORT).show();
+                String location = searchView.getQuery().toString().trim();  
+//                 destination = POISelectionActivity.updateSymbol(location, symbolManager, routeB, poiList, context);
+//                 if(destination==-1){
+//                     Toast.makeText(context, "Search location not found", Toast.LENGTH_SHORT).show();
+//                 }
+//                 searchView.setQuery("", false);
+//                 searchView.setIconified(true);
+
+                if (isRouteDisplay) {
+                    isRouteDisplay = false;
+                    NavigationActivity.removeRoute(mapboxMap);
+                    MapSetupActivity.hideView(routeB);
+                    txtView.setText("");
+                    POISelectionActivity.toggleMarker(null, symbolManager);
+                    scr_loc = null;
+                    des_loc = null;
                 }
-                searchView.setQuery("", false);
-                searchView.setIconified(true);
+                if (scr_loc == null) {
+                    ArrayList<Object> result = POISelectionActivity.updateSymbol(location, symbolManager, routeB, poiList);
+                    scource = (Integer) result.get(0);
+                    scr_loc = (Symbol) result.get(1);
+                } else if (des_loc == null) {
+                    ArrayList<Object> result = POISelectionActivity.updateSymbol(location, symbolManager, routeB, poiList);
+                    destination = (Integer) result.get(0);
+                    des_loc = (Symbol) result.get(1);
+                }
+                if (scr_loc != null && des_loc != null) {
+                    if (routeButton.getVisibility() != View.VISIBLE) {
+                        MapSetupActivity.showView(routeButton);
+                    }
+                    if (routeButton.getText().equals(getResources().getText(R.string.cancel_route))) {
+                        routeButton.setText(R.string.calc_route);
+                    }
+                    scr_loc = null;
+                    des_loc = null;
+                }
                 return false;
             }
+
             @Override
             public boolean onQueryTextChange(String newText) {
                 return false;

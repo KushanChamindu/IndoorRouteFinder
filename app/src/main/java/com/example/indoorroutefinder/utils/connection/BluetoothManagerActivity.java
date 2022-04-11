@@ -98,7 +98,7 @@ public class BluetoothManagerActivity {
                 Log.i("User localization 2", String.valueOf(p2.gr()));
                 Log.i("User localization 3", String.valueOf(p3.gr()));
                 if(a != null){
-                    POISelectionActivity.userRelocate(a[0] , a[1] , symbolManager);
+//                    POISelectionActivity.userRelocate(a[0] , a[1] , symbolManager);
                     Log.i("Trilateration", "LatLon: " + a[0] + ", " + a[1]);
                 }
 //

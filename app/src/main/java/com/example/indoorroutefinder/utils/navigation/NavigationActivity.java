@@ -24,7 +24,7 @@ import java.util.stream.Collectors;
 
 public class NavigationActivity {
     private static Map<String, PoiGeoJsonObject> navPointList = null;
-    private static final int verticesCount = 13;
+    private static final int verticesCount = 19;
     private static final ArrayList<ArrayList<Integer>> edges = new ArrayList<>(verticesCount);
     private static Polyline polyline = null;
 
@@ -36,15 +36,24 @@ public class NavigationActivity {
         }
 
         addEdge(1, 2);
+        addEdge(1, 3);
         addEdge(2, 3);
+        addEdge(2, 4);
         addEdge(3, 4);
         addEdge(4, 5);
         addEdge(5, 6);
+        addEdge(4, 6);
         addEdge(6, 7);
-        addEdge(6, 8);
-        addEdge(8, 9);
-        addEdge(8, 10);
+        addEdge(7, 9);
+        addEdge(9, 8);
+        addEdge(9, 10);
         addEdge(10, 11);
+        addEdge(11, 12);
+        addEdge(12, 13);
+        addEdge(12, 14);
+        addEdge(14, 16);
+        addEdge(16, 15);
+        addEdge(16, 17);
     }
 
     private static void loadNavPoints(String geoJsonSource) {
@@ -106,6 +115,14 @@ public class NavigationActivity {
             }
         }
         return finalPath;
+    }
+
+    public static ArrayList<PoiGeoJsonObject> getNavPoints() {
+        ArrayList<PoiGeoJsonObject> navPoints = new ArrayList<>();
+        for (Map.Entry<String, PoiGeoJsonObject> entry : navPointList.entrySet()) {
+            navPoints.add(entry.getValue());
+        }
+        return navPoints;
     }
 
     @RequiresApi(api = Build.VERSION_CODES.N)
