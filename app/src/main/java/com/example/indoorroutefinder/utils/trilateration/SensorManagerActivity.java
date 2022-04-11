@@ -48,10 +48,10 @@ public class SensorManagerActivity {
                 roll = Math.toDegrees(orientVals[2]);
                 counter+=1;
                 if(counter==40){
-                    POISelectionActivity.userMarkRotate(azimuth-125,symbolManager);
+                    POISelectionActivity.userMarkRotate(azimuth-90,symbolManager);
                 }else if(counter >40){
                     counter =41;
-                    POISelectionActivity.userMarkRotate(azimuth-125,symbolManager);
+                    POISelectionActivity.userMarkRotate(azimuth-90, symbolManager);
                 }
             }
         }

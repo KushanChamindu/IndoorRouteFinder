@@ -68,7 +68,7 @@ public class POISelectionActivity {
                     .withIconImage("UserLoc")
                     .withTextField("")
                     .withTextOffset(new Float[]{0f, 1.5f})
-                    .withIconSize(0.8f)
+                    .withIconSize(1f)
                     .withIconOffset(new Float[]{0f, -1.5f}));
             symbols = symbolManager.create(options);
             userLoc = symbols.get(symbols.size() - 1);
