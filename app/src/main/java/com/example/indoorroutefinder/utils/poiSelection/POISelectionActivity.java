@@ -21,6 +21,7 @@ import com.mapbox.mapboxsdk.plugins.annotation.SymbolOptions;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -28,7 +29,7 @@ import java.util.Objects;
 
 public class POISelectionActivity {
     private static final List<SymbolOptions> options = new ArrayList<>();
-    private static Symbol lastClickedSymbol = null;
+    private static Symbol[] lastClickedSymbol = new Symbol[2];
     private static Symbol userLoc = null;
     private static List<Symbol> symbols;
 
@@ -54,19 +55,20 @@ public class POISelectionActivity {
                                     .withIconImage("marker")
 //                            .withTextField((String) properties.get("Name"))
                                     .withTextField(pointName.substring(0, 1).toUpperCase() + pointName.substring(1))
+                                    .withTextSize(12f)
                                     .withTextAnchor("top")
                                     .withTextOffset(new Float[]{0f, 1.5f})
-                                    .withIconSize(1f)
+                                    .withIconSize(0.7f)
                                     .withIconOffset(new Float[]{0f, -1.5f})
                     );
                 }
             }
             options.add(new SymbolOptions()
-                    .withLatLng(new LatLng(6.795565, 79.919774))
+                    .withLatLng(new LatLng(6.795594, 79.919668))
                     .withIconImage("UserLoc")
                     .withTextField("")
                     .withTextOffset(new Float[]{0f, 1.5f})
-                    .withIconSize(1f)
+                    .withIconSize(0.8f)
                     .withIconOffset(new Float[]{0f, -1.5f}));
             symbols = symbolManager.create(options);
             userLoc = symbols.get(symbols.size() - 1);
@@ -80,16 +82,33 @@ public class POISelectionActivity {
     @RequiresApi(api = Build.VERSION_CODES.N)
     public static void toggleMarker(Symbol symbolToUpdate, SymbolManager symbolManager) {
         if (symbolToUpdate == null) {
-            lastClickedSymbol.setIconImage("marker");
-            symbolManager.update(lastClickedSymbol);
-            lastClickedSymbol = null;
+            if (lastClickedSymbol[0] != null) {
+                lastClickedSymbol[0].setIconImage("marker");
+                symbolManager.update(lastClickedSymbol[0]);
+            }
+            if (lastClickedSymbol[1] != null) {
+                lastClickedSymbol[1].setIconImage("marker");
+                symbolManager.update(lastClickedSymbol[1]);
+            }
+            lastClickedSymbol[0] = null;
+            lastClickedSymbol[1] = null;
         } else if (symbolToUpdate.getIconImage().equals("marker")) {
-            if (lastClickedSymbol != null) {
-                lastClickedSymbol.setIconImage("marker");
+            if (lastClickedSymbol[0] != null && lastClickedSymbol[1] != null) {
+                lastClickedSymbol[0].setIconImage("marker");
+                lastClickedSymbol[1].setIconImage("marker");
+                symbolManager.update(lastClickedSymbol[0]);
+                symbolManager.update(lastClickedSymbol[1]);
+                lastClickedSymbol[0] = null;
+                lastClickedSymbol[1] = null;
             }
             symbolToUpdate.setIconImage("redMarker");
             symbolManager.update(symbolToUpdate);
-            lastClickedSymbol = symbolToUpdate;
+            if (lastClickedSymbol[0] == null) {
+                lastClickedSymbol[0] = symbolToUpdate;
+            } else {
+                lastClickedSymbol[1] = symbolToUpdate;
+            }
+
         }
     }
 
@@ -98,34 +117,52 @@ public class POISelectionActivity {
         symbolManager.update(userLoc);
     }
 
-    public static int updateSymbol(String name, SymbolManager symbolManager, Button routeButton, List<PoiGeoJsonObject> poiList, Context context) {
+
+//     public static int updateSymbol(String name, SymbolManager symbolManager, Button routeButton, List<PoiGeoJsonObject> poiList, Context context) {
+
+    public static ArrayList updateSymbol(String name, SymbolManager symbolManager, Button routeButton, List<PoiGeoJsonObject> poiList) {
+        ArrayList<Object> returnValue = new ArrayList<>();
+
         for (Symbol symbol : symbols) {
             String symbolName = symbol.getTextField();
-            if(name!=null & symbolName!=null) {
+            if (name != null & symbolName != null) {
                 if (symbolName.equalsIgnoreCase(name)) {
-                    if (lastClickedSymbol != null) {
-                        lastClickedSymbol.setIconImage("marker");
+                    if (lastClickedSymbol[0] != null && lastClickedSymbol[1] != null) {
+                        lastClickedSymbol[0].setIconImage("marker");
+                        lastClickedSymbol[1].setIconImage("marker");
+                        symbolManager.update(lastClickedSymbol[0]);
+                        symbolManager.update(lastClickedSymbol[1]);
+                        lastClickedSymbol[0] = null;
+                        lastClickedSymbol[1] = null;
+                        if (routeButton.getVisibility() != View.VISIBLE) {
+                            MapSetupActivity.showView(routeButton);
+                        }
                     }
                     routeButton.setText(R.string.calc_route);
                     symbol.setIconImage("redMarker");
                     symbolManager.update(symbol);
-                    lastClickedSymbol = symbol;
-                    if (routeButton.getVisibility() != View.VISIBLE) {
-                        MapSetupActivity.showView(routeButton);
+                    if (lastClickedSymbol[0] == null) {
+                        lastClickedSymbol[0] = symbol;
+                    } else if (lastClickedSymbol[1] == null) {
+                        lastClickedSymbol[1] = symbol;
                     }
-                    for (PoiGeoJsonObject poi: poiList){
-                        if(Objects.requireNonNull(poi.props.get("Name")).equalsIgnoreCase((symbolName+"_lvl_0"))){
-                            return Integer.parseInt(String.valueOf(poi.props.get("Nav")));
+
+                    for (PoiGeoJsonObject poi : poiList) {
+                        if (Objects.requireNonNull(poi.props.get("Name")).equalsIgnoreCase((symbolName + "_lvl_0"))) {
+                            returnValue.add(Integer.parseInt(String.valueOf(poi.props.get("Nav"))));
+                            returnValue.add(symbol);
+                            return returnValue;
                         }
                     }
                 }
             }
         }
-        return -1;
+        returnValue.add(-1);
+        return returnValue;
     }
 
     public static void userMarkRotate(double azimuth, SymbolManager symbolManager) {
-        if(symbolManager != null){
+        if (symbolManager != null) {
             userLoc.setIconRotate((float) azimuth);
             symbolManager.update(userLoc);
         }
