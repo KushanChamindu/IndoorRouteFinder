@@ -18,8 +18,10 @@ import android.util.Log;
 import android.util.Size;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.AdapterView;
 import android.widget.Button;
 import android.widget.ImageButton;
+import android.widget.ListView;
 import android.widget.SimpleCursorAdapter;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -48,6 +50,8 @@ import com.example.indoorroutefinder.utils.map.MapSetupActivity;
 import com.example.indoorroutefinder.utils.navigation.NavigationActivity;
 import com.example.indoorroutefinder.utils.poiSelection.POISelectionActivity;
 import com.example.indoorroutefinder.utils.poiSelection.PoiGeoJsonObject;
+import com.example.indoorroutefinder.utils.search.POI;
+import com.example.indoorroutefinder.utils.search.ListViewAdapter;
 import com.example.indoorroutefinder.utils.trilateration.SensorManagerActivity;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.mapbox.mapboxsdk.Mapbox;
@@ -64,7 +68,7 @@ import java.util.List;
 import java.util.concurrent.ExecutionException;
 import java.util.stream.Collectors;
 
-public class MainActivity extends AppCompatActivity implements SensorEventListener, OnMapReadyCallback, Style.OnStyleLoaded {
+public class MainActivity extends AppCompatActivity implements SensorEventListener, OnMapReadyCallback, Style.OnStyleLoaded{
 
     private MapView mapView;
     private MapboxMap mapboxMap;
@@ -96,12 +100,12 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     private Symbol scr_loc;
     private Symbol des_loc;
     private boolean isRouteDisplay = false;
-    private static final String[] SUGGESTIONS = {
-            "Bauru", "Sao Paulo", "Rio de Janeiro",
-            "Bahia", "Mato Grosso", "Minas Gerais",
-            "Tocantins", "Rio Grande do Sul"
-    };
-    private SimpleCursorAdapter mAdapter;
+    //==============================================
+    private ListView suggestionList;
+    String[] animalNameList;
+    private ListViewAdapter adapter;
+    ArrayList<POI> arrayPOIList = new ArrayList<POI>();
+
 
     private final BroadcastReceiver receiver = new BroadcastReceiver() {
         @RequiresApi(api = Build.VERSION_CODES.R)
@@ -133,6 +137,14 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         previewView.setVisibility(View.INVISIBLE);
 
         cameraProviderFuture = ProcessCameraProvider.getInstance(this);
+        //====================================================================================
+
+
+        // Locate the EditText in listview_main.xml
+//        editsearch = (SearchView) findViewById(R.id.search);
+//        editsearch.setOnQueryTextListener(this);
+
+
     }
 
     private void requestCamera() {
@@ -469,11 +481,30 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         searchView.setQueryHint("Search here .....");
         searchView.onWindowFocusChanged(false);
         searchView.setMaxWidth(Integer.MAX_VALUE);
+//        animalNameList = new String[]{"Lion", "Tiger", "Dog",
+//                "Cat", "Tortoise", "Rat", "Elephant", "Fox",
+//                "Cow","Donkey","Monkey"};
+//
+        for (int i = 0; i < poiList.size(); i++) {
+            POI POINames = new POI(poiList.get(i).props.get("Name").replace("_lvl_0", ""));
+            // Binds all strings into an array
+            arrayPOIList.add(POINames);
+        }
+        // Locate the ListView in listview_main.xml
+        suggestionList = (ListView) findViewById(R.id.suggestionForSearch);
+        // Pass results to ListViewAdapter Class
+
+        adapter = new ListViewAdapter(this, arrayPOIList);
+
+        // Binds the Adapter to the ListView
+        suggestionList.setAdapter(adapter);
+        suggestionList.setVisibility(View.INVISIBLE);
         searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
             @RequiresApi(api = Build.VERSION_CODES.N)
             @Override
             public boolean onQueryTextSubmit(String query) {
                 String location = searchView.getQuery().toString().trim();
+                suggestionList.setVisibility(View.INVISIBLE);
 //                 destination = POISelectionActivity.updateSymbol(location, symbolManager, routeB, poiList, context);
 //                 if(destination==-1){
 //                     Toast.makeText(context, "Search location not found", Toast.LENGTH_SHORT).show();
@@ -522,6 +553,15 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
 
             @Override
             public boolean onQueryTextChange(String newText) {
+                String text = newText;
+                adapter.filter(text);
+                return false;
+            }
+        });
+        searchView.setOnCloseListener(new SearchView.OnCloseListener() {
+            @Override
+            public boolean onClose() {
+                suggestionList.setVisibility(View.INVISIBLE);
                 return false;
             }
         });
@@ -529,7 +569,53 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
             @Override
             public void onClick(View v) {
                 searchView.setFocusable(true);
+                suggestionList.setVisibility(View.VISIBLE);
                 searchView.requestFocusFromTouch();
+            }
+        });
+        suggestionList.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @RequiresApi(api = Build.VERSION_CODES.N)
+            public void onItemClick(AdapterView<?> listView, View itemView, int itemPosition, long itemId)
+            {
+                String location = poiList.get(itemPosition).props.get("Name").replace("_lvl_0", "");
+                suggestionList.setVisibility(View.INVISIBLE);
+                ArrayList<Object> result = POISelectionActivity.updateSymbol(location, symbolManager, routeB, poiList);
+                if ((Integer) result.get(0) == -1) {
+                    Toast.makeText(context, "Search location not found", Toast.LENGTH_SHORT).show();
+                    searchView.setQuery("", false);
+                    searchView.setIconified(true);
+                } else {
+
+                    if (isRouteDisplay) {
+                        isRouteDisplay = false;
+                        NavigationActivity.removeRoute(mapboxMap);
+                        MapSetupActivity.hideView(routeB);
+                        txtView.setText("");
+                        POISelectionActivity.toggleMarker(null, symbolManager);
+                        scr_loc = null;
+                        des_loc = null;
+                    }
+                    if (scr_loc == null) {
+                        scource = (Integer) result.get(0);
+                        scr_loc = (Symbol) result.get(1);
+                    } else if (des_loc == null) {
+                        destination = (Integer) result.get(0);
+                        des_loc = (Symbol) result.get(1);
+                    }
+                    if (scr_loc != null && des_loc != null) {
+                        if (routeButton.getVisibility() != View.VISIBLE) {
+                            MapSetupActivity.showView(routeButton);
+                        }
+                        if (routeButton.getText().equals(getResources().getText(R.string.cancel_route))) {
+                            routeButton.setText(R.string.calc_route);
+                        }
+                        scr_loc = null;
+                        des_loc = null;
+                    }
+                    searchView.setQuery("", false);
+                    searchView.setIconified(true);
+                }
+
             }
         });
     }
