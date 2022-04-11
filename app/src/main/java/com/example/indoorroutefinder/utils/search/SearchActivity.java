@@ -1,5 +1,6 @@
 package com.example.indoorroutefinder.utils.search;
 
+import android.content.Context;
 import android.os.Build;
 import android.util.Log;
 import android.widget.Button;
@@ -15,7 +16,8 @@ import java.util.List;
 
 public class SearchActivity {
 
-    public static void handleSearch(SearchView searchView, SymbolManager symbolManager, Button routeB, List<PoiGeoJsonObject> poiList){
+    public static void handleSearch(SearchView searchView, SymbolManager symbolManager, Button routeB,
+                                    List<PoiGeoJsonObject> poiList, Context context){
         searchView.setIconifiedByDefault(false);
         searchView.setQueryHint("Search here ......");
         searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
@@ -23,7 +25,7 @@ public class SearchActivity {
             @Override
             public boolean onQueryTextSubmit(String query) {
                 String location = searchView.getQuery().toString();
-                POISelectionActivity.updateSymbol(location, symbolManager, routeB, poiList);
+                POISelectionActivity.updateSymbol(location, symbolManager, routeB, poiList, context);
                 return false;
             }
             @Override

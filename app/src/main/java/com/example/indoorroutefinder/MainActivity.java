@@ -12,8 +12,11 @@ import android.os.Build;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.Button;
+import android.widget.ImageButton;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -27,7 +30,6 @@ import com.example.indoorroutefinder.utils.map.MapSetupActivity;
 import com.example.indoorroutefinder.utils.navigation.NavigationActivity;
 import com.example.indoorroutefinder.utils.poiSelection.POISelectionActivity;
 import com.example.indoorroutefinder.utils.poiSelection.PoiGeoJsonObject;
-import com.example.indoorroutefinder.utils.search.SearchActivity;
 import com.example.indoorroutefinder.utils.trilateration.SensorManagerActivity;
 import com.mapbox.mapboxsdk.Mapbox;
 import com.mapbox.mapboxsdk.maps.MapView;
@@ -49,9 +51,10 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     private SymbolManager symbolManager;
     private static List<PoiGeoJsonObject> poiList = null;
     private Button routeButton;
-    private Button initButton;
+    private ImageButton initButton;
     private Button bluetooth_button;
     private TextView txtView;
+    private SearchView searchView;
     private int destination;
     private static final int REQUEST_ENABLE_BT = 0;
     private static final int REQUEST_DISCOVER_BT = 1;
@@ -101,6 +104,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         initButton = findViewById(R.id.initButton);
         txtView = findViewById(R.id.stoleText);
         bluetooth_button = findViewById(R.id.bluetoothOn);
+        searchView = findViewById(R.id.search_view);
 
         MapSetupActivity.setInitialCamera(mapboxMap);
         GeoJsonSource indoorBuildingSource = new GeoJsonSource("indoor-building", MapSetupActivity.loadJsonFromAsset(goeFileName, getAssets()));
@@ -116,15 +120,13 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
             }
         });
 
-//        mapboxMap.addOnMapClickListener(point -> {
-//            Feature selectedFeature = POISelectionActivity.findSelectedFeature(mapboxMap, point);
-//            PoiGeoJsonObject selectedPoi = POISelectionActivity.findClickedPoi(selectedFeature);
-//            if(selectedFeature != null) {
-//                POISelectionActivity.removeMarkers(mapboxMap);
-//            }
-//            POISelectionActivity.createMarker(mapView, mapboxMap, loadedStyle,getResources(),selectedPoi, selectedFeature);
-//            return true;
-//        });
+        mapboxMap.addOnMapClickListener(point -> {
+            if (!searchView.isIconified()) {
+                searchView.setQuery("", false);
+                searchView.setIconified(true);
+            }
+            return true;
+        });
 
 //        mapboxMap.addOnCameraMoveListener(new MapboxMap.OnCameraMoveListener() {
 //            @Override
@@ -160,7 +162,9 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
                 }
             }
         });
-        handleSearch(findViewById(R.id.search_view), symbolManager, routeButton, poiList);
+
+        mapboxMap.getUiSettings().setCompassEnabled(false);
+        handleSearch(searchView, symbolManager, routeButton, poiList);
 
 //        initButton.setOnClickListener(view -> MapSetupActivity.setInitialCamera(mapboxMap));
 //        NavigationActivity.initNav(MapSetupActivity.loadJsonFromAsset(goeFileName, getAssets()));
@@ -271,19 +275,33 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     }
 
     public void handleSearch(SearchView searchView, SymbolManager symbolManager, Button routeB, List<PoiGeoJsonObject> poiList){
-        searchView.setIconifiedByDefault(false);
-        searchView.setQueryHint("Search here ......");
+        searchView.setIconifiedByDefault(true);
+        searchView.setQueryHint("Search here .....");
+        searchView.onWindowFocusChanged(false);
+        searchView.setMaxWidth(Integer.MAX_VALUE);
         searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
             @RequiresApi(api = Build.VERSION_CODES.N)
             @Override
             public boolean onQueryTextSubmit(String query) {
                 String location = searchView.getQuery().toString().trim();
-                destination = POISelectionActivity.updateSymbol(location, symbolManager, routeB, poiList);
+                destination = POISelectionActivity.updateSymbol(location, symbolManager, routeB, poiList, context);
+                if(destination==-1){
+                    Toast.makeText(context, "Search location not found", Toast.LENGTH_SHORT).show();
+                }
+                searchView.setQuery("", false);
+                searchView.setIconified(true);
                 return false;
             }
             @Override
             public boolean onQueryTextChange(String newText) {
                 return false;
+            }
+        });
+        searchView.setOnSearchClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                searchView.setFocusable(true);
+                searchView.requestFocusFromTouch();
             }
         });
     }
