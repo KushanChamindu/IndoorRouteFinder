@@ -12,29 +12,35 @@
         android:id="@+id/mapView"
         android:layout_width="match_parent"
         android:layout_height="match_parent">
+
         <androidx.camera.view.PreviewView
             android:id="@+id/activity_main_previewView"
             android:layout_width="match_parent"
             android:layout_height="match_parent" />
 
+
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="vertical">
+            android:gravity="right"
+            android:orientation="vertical"
+            tools:ignore="RtlHardcoded"
+            android:layout_margin="10dp" >
+
             <androidx.appcompat.widget.SearchView
                 android:id="@+id/search_view"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_margin="10dp"
-                android:elevation="5dp"
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent"
                 android:background="@drawable/bg_round"
-                />
+                android:visibility="visible" />
+
             <Button
                 android:id="@+id/cameraButton"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginLeft="10dp"
-                android:text="C"/>
+                android:text="C" />
+
         </LinearLayout>
 
         <LinearLayout
@@ -42,45 +48,14 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_gravity="bottom|end"
-            android:background="@color/white"
-            android:orientation="horizontal">
+            android:orientation="vertical">
 
-            <TextView
-                android:id="@+id/stoleText"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:fontFamily="monospace"
-                android:paddingLeft="5dp"
-                android:paddingTop="3dp"
-                android:paddingRight="5dp"
-                android:paddingBottom="3dp"
-                android:text=""
-                android:textAlignment="center"
-                android:textAllCaps="false"
-                android:textColor="#090909"
-                android:textSize="16sp"
-                android:textStyle="bold" />
-
-            <Button
-                android:id="@+id/calcRouteButton"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_gravity="left|top"
-                android:layout_marginLeft="2dp"
-                android:layout_marginRight="4dp"
-                android:layout_weight="1"
-                android:orientation="vertical"
-                android:text="@string/calc_route"
-                android:textColor="#FBFBFB"
-                android:textSize="12sp"
-                android:visibility="invisible"
-                tools:ignore="RtlHardcoded" />
-
-            <Button
+            <ImageButton
                 android:id="@+id/initButton"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
+                android:layout_width="42dp"
+                android:layout_height="42dp"
+                android:elevation="4dp"
+                android:src="@drawable/bg_circle"
                 android:layout_gravity="right|top"
                 android:layout_marginRight="4dp"
                 android:layout_weight="1"
@@ -92,20 +67,60 @@
                 tools:layout_editor_absoluteX="15dp"
                 tools:layout_editor_absoluteY="15dp" />
 
-            <Button
-                android:id="@+id/bluetoothOn"
+            <LinearLayout
+                android:id="@+id/bottom_buttons"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_gravity="right|top"
-                android:layout_marginRight="4dp"
-                android:layout_weight="1"
-                android:orientation="vertical"
-                android:text="@string/bluetooth_on"
-                android:textColor="#FBFBFB"
-                android:textSize="12sp"
-                tools:ignore="RtlHardcoded"
-                tools:layout_editor_absoluteX="15dp"
-                tools:layout_editor_absoluteY="15dp" />
+                android:orientation="horizontal">
+
+                <TextView
+                    android:id="@+id/stoleText"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:fontFamily="monospace"
+                    android:paddingLeft="5dp"
+                    android:paddingTop="3dp"
+                    android:paddingRight="5dp"
+                    android:paddingBottom="3dp"
+                    android:text=""
+                    android:textAlignment="center"
+                    android:textAllCaps="false"
+                    android:textColor="#090909"
+                    android:textSize="16sp"
+                    android:textStyle="bold" />
+
+                <Button
+                    android:id="@+id/calcRouteButton"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="left|top"
+                    android:layout_marginLeft="2dp"
+                    android:layout_marginRight="4dp"
+                    android:layout_weight="1"
+                    android:orientation="vertical"
+                    android:text="@string/calc_route"
+                    android:textColor="#FBFBFB"
+                    android:textSize="12sp"
+                    android:visibility="invisible"
+                    tools:ignore="RtlHardcoded" />
+
+                <Button
+                    android:id="@+id/bluetoothOn"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="right|top"
+                    android:layout_marginRight="4dp"
+                    android:layout_weight="1"
+                    android:orientation="vertical"
+                    android:text="@string/bluetooth_on"
+                    android:textColor="#FBFBFB"
+                    android:textSize="12sp"
+                    tools:ignore="RtlHardcoded"
+                    tools:layout_editor_absoluteX="15dp"
+                    tools:layout_editor_absoluteY="15dp" />
+
+            </LinearLayout>
 
         </LinearLayout>
 

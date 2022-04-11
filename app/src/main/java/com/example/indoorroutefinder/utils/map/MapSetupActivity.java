@@ -18,6 +18,7 @@ import android.view.View;
 import android.view.animation.AlphaAnimation;
 
 import androidx.annotation.NonNull;
+import androidx.appcompat.widget.SearchView;
 
 import com.example.indoorroutefinder.R;
 import com.mapbox.mapboxsdk.camera.CameraPosition;
@@ -118,5 +119,12 @@ public class MapSetupActivity {
         button.setVisibility(View.VISIBLE);
     }
 
+    public static void handleSearchClickViews(SearchView searchView, View button){
+        AlphaAnimation animation = new AlphaAnimation(0.0f, 1.0f);
+        animation.setDuration(500);
+        button.startAnimation(animation);
+        searchView.setVisibility(View.VISIBLE);
+        button.setVisibility(View.GONE);
+    }
 
 }

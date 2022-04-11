@@ -1,12 +1,16 @@
 package com.example.indoorroutefinder.utils.poiSelection;
 
+import android.content.Context;
 import android.os.Build;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
+import android.widget.Toast;
 
 import androidx.annotation.RequiresApi;
+import androidx.appcompat.widget.SearchView;
 
+import com.example.indoorroutefinder.R;
 import com.example.indoorroutefinder.utils.map.MapSetupActivity;
 import com.fasterxml.jackson.databind.MapperFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -112,8 +116,12 @@ public class POISelectionActivity {
         symbolManager.update(userLoc);
     }
 
+
+//     public static int updateSymbol(String name, SymbolManager symbolManager, Button routeButton, List<PoiGeoJsonObject> poiList, Context context) {
+
     public static ArrayList updateSymbol(String name, SymbolManager symbolManager, Button routeButton, List<PoiGeoJsonObject> poiList) {
         ArrayList<Object> returnValue = new ArrayList<>();
+
         for (Symbol symbol : symbols) {
             String symbolName = symbol.getTextField();
             if (name != null & symbolName != null) {
@@ -129,6 +137,7 @@ public class POISelectionActivity {
                             MapSetupActivity.showView(routeButton);
                         }
                     }
+                    routeButton.setText(R.string.calc_route);
                     symbol.setIconImage("redMarker");
                     symbolManager.update(symbol);
                     if (lastClickedSymbol[0] == null) {
