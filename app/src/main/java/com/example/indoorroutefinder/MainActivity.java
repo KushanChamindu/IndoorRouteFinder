@@ -51,9 +51,11 @@ import com.mapbox.mapboxsdk.maps.MapView;
 import com.mapbox.mapboxsdk.maps.MapboxMap;
 import com.mapbox.mapboxsdk.maps.OnMapReadyCallback;
 import com.mapbox.mapboxsdk.maps.Style;
+import com.mapbox.mapboxsdk.plugins.annotation.Symbol;
 import com.mapbox.mapboxsdk.plugins.annotation.SymbolManager;
 import com.mapbox.mapboxsdk.style.sources.GeoJsonSource;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
 import java.util.stream.Collectors;
@@ -66,12 +68,14 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     String goeFileName = "convention_hall_lvl_0_Nav_3.geojson";
     private SymbolManager symbolManager;
     private static List<PoiGeoJsonObject> poiList = null;
+    private static List<PoiGeoJsonObject> NavList = null;
     private Button routeButton;
     private Button initButton;
     private Button bluetooth_button;
     private Button cameraButton;
     private TextView txtView;
     private int destination;
+    private int scource;
     private static final int REQUEST_ENABLE_BT = 0;
     private static final int REQUEST_DISCOVER_BT = 1;
     private Context context;
@@ -84,6 +88,9 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     private ListenableFuture<ProcessCameraProvider> cameraProviderFuture;
     private static ProcessCameraProvider cameraProvider;
     private String qrCode;
+    private Symbol scr_loc;
+    private Symbol des_loc;
+    private boolean isRouteDisplay = false;
 
     private final BroadcastReceiver receiver = new BroadcastReceiver() {
         @RequiresApi(api = Build.VERSION_CODES.R)
@@ -141,7 +148,6 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         }
     }
 
-
     private void startCamera() {
         cameraProviderFuture.addListener(() -> {
             try {
@@ -181,7 +187,10 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
                 cameraProvider.unbindAll();
                 previewView.setVisibility(View.INVISIBLE);
 //                qrCodeFoundButton.setVisibility(View.VISIBLE);
-                Toast.makeText(getApplicationContext(), "QR: "+_qrCode, Toast.LENGTH_SHORT).show();
+                Toast.makeText(getApplicationContext(), "QR: " + _qrCode, Toast.LENGTH_SHORT).show();
+                double lat = Double.parseDouble(qrCode.split(",")[0]);
+                double lon = Double.parseDouble(qrCode.split(",")[1]);
+                POISelectionActivity.userRelocate(lat, lon, symbolManager);
             }
 
             @Override
@@ -191,7 +200,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
             }
         }));
 
-        Camera camera = cameraProvider.bindToLifecycle((LifecycleOwner)this, cameraSelector, imageAnalysis, preview);
+        Camera camera = cameraProvider.bindToLifecycle((LifecycleOwner) this, cameraSelector, imageAnalysis, preview);
     }
 
     @Override
@@ -281,9 +290,11 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         routeButton.setOnClickListener(view -> {
             if (destination != -1) {
                 if (routeButton.getText().equals(getResources().getText(R.string.calc_route))) {
-                    NavigationActivity.displayRoute(1, destination, mapboxMap);
+                    NavigationActivity.displayRoute(scource, destination, mapboxMap);
+                    isRouteDisplay = true;
                     routeButton.setText(R.string.cancel_route);
                 } else {
+                    isRouteDisplay = false;
                     NavigationActivity.removeRoute(mapboxMap);
                     MapSetupActivity.hideView(routeButton);
                     txtView.setText("");
@@ -292,6 +303,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
             }
         });
         handleSearch(findViewById(R.id.search_view), symbolManager, routeButton, poiList);
+        NavList = NavigationActivity.getNavPoints();
 
 //        initButton.setOnClickListener(view -> MapSetupActivity.setInitialCamera(mapboxMap));
 //        NavigationActivity.initNav(MapSetupActivity.loadJsonFromAsset(goeFileName, getAssets()));
@@ -306,25 +318,58 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
 
     @RequiresApi(api = Build.VERSION_CODES.N)
     private void loadSymbols(Style style) {
+
         symbolManager = new SymbolManager(mapView, mapboxMap, style);
         symbolManager.setIconAllowOverlap(true);
         symbolManager.setTextAllowOverlap(true);
         symbolManager.addClickListener(symbol -> {
-            POISelectionActivity.toggleMarker(symbol, symbolManager);
-            if (routeButton.getVisibility() != View.VISIBLE) {
-                MapSetupActivity.showView(routeButton);
+            PoiGeoJsonObject scr_poi = null;
+            PoiGeoJsonObject des_poi = null;
+            if (scr_loc == null) {
+                if (isRouteDisplay) {
+                    isRouteDisplay = false;
+                    NavigationActivity.removeRoute(mapboxMap);
+                    MapSetupActivity.hideView(routeButton);
+                    txtView.setText("");
+                    POISelectionActivity.toggleMarker(null, symbolManager);
+                }
+                scr_loc = symbol;
+                POISelectionActivity.toggleMarker(symbol, symbolManager);
+            } else if (des_loc == null) {
+                des_loc = symbol;
+                POISelectionActivity.toggleMarker(symbol, symbolManager);
+            } else if (scr_loc.equals(des_loc)) {
+                POISelectionActivity.toggleMarker(symbol, symbolManager);
             }
-            if (routeButton.getText().equals(getResources().getText(R.string.cancel_route))) {
-                routeButton.setText(R.string.calc_route);
+//            if(scr_loc.equals())
+            if (scr_loc != null && des_loc != null) {
+                if (routeButton.getVisibility() != View.VISIBLE) {
+                    MapSetupActivity.showView(routeButton);
+                }
+                if (routeButton.getText().equals(getResources().getText(R.string.cancel_route))) {
+                    routeButton.setText(R.string.calc_route);
+                }
+                NavigationActivity.removeRoute(mapboxMap);
+                txtView.setText(symbol.getTextField());
+                // Toast.makeText(getApplicationContext(), "Displaying route to " + symbol.getTextField(), Toast.LENGTH_SHORT).show();
+                scr_poi = NavList.stream().filter(obj ->
+                        String.valueOf(obj.coordinates.get(0)).equals(String.valueOf(scr_loc.getGeometry().longitude()))
+                                && String.valueOf(obj.coordinates.get(1)).equals(String.valueOf(scr_loc.getGeometry().latitude()))
+                ).collect(Collectors.toList()).get(0);
+                des_poi = NavList.stream().filter(obj ->
+                        String.valueOf(obj.coordinates.get(0)).equals(String.valueOf(des_loc.getGeometry().longitude()))
+                                && String.valueOf(obj.coordinates.get(1)).equals(String.valueOf(des_loc.getGeometry().latitude()))
+                ).collect(Collectors.toList()).get(0);
+                scr_loc = null;
+                des_loc = null;
             }
-            NavigationActivity.removeRoute(mapboxMap);
-            txtView.setText(symbol.getTextField());
-            // Toast.makeText(getApplicationContext(), "Displaying route to " + symbol.getTextField(), Toast.LENGTH_SHORT).show();
-            PoiGeoJsonObject poi = poiList.stream().filter(obj ->
-                    String.valueOf(obj.coordinates.get(0)).equals(String.valueOf(symbol.getGeometry().longitude()))
-                            && String.valueOf(obj.coordinates.get(1)).equals(String.valueOf(symbol.getGeometry().latitude()))
-            ).collect(Collectors.toList()).get(0);
-            destination = Integer.parseInt(String.valueOf(poi.props.get("Nav")));
+            if (scr_poi != null && des_poi != null) {
+                destination = Integer.parseInt(String.valueOf(des_poi.props.get("Nav")));
+                scource = Integer.parseInt(String.valueOf(scr_poi.props.get("Nav")));
+                scr_poi = null;
+                des_poi = null;
+
+            }
         });
 
     }
@@ -410,7 +455,34 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
             @Override
             public boolean onQueryTextSubmit(String query) {
                 String location = searchView.getQuery().toString().trim();
-                destination = POISelectionActivity.updateSymbol(location, symbolManager, routeB, poiList);
+                if (isRouteDisplay) {
+                    isRouteDisplay = false;
+                    NavigationActivity.removeRoute(mapboxMap);
+                    MapSetupActivity.hideView(routeB);
+                    txtView.setText("");
+                    POISelectionActivity.toggleMarker(null, symbolManager);
+                    scr_loc = null;
+                    des_loc = null;
+                }
+                if (scr_loc == null) {
+                    ArrayList<Object> result = POISelectionActivity.updateSymbol(location, symbolManager, routeB, poiList);
+                    scource = (Integer) result.get(0);
+                    scr_loc = (Symbol) result.get(1);
+                } else if (des_loc == null) {
+                    ArrayList<Object> result = POISelectionActivity.updateSymbol(location, symbolManager, routeB, poiList);
+                    destination = (Integer) result.get(0);
+                    des_loc = (Symbol) result.get(1);
+                }
+                if (scr_loc != null && des_loc != null) {
+                    if (routeButton.getVisibility() != View.VISIBLE) {
+                        MapSetupActivity.showView(routeButton);
+                    }
+                    if (routeButton.getText().equals(getResources().getText(R.string.cancel_route))) {
+                        routeButton.setText(R.string.calc_route);
+                    }
+                    scr_loc = null;
+                    des_loc = null;
+                }
                 return false;
             }
 
