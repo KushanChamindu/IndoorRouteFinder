@@ -6,18 +6,21 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.pm.PackageManager;
+import android.database.MatrixCursor;
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
 import android.os.Build;
 import android.os.Bundle;
+import android.provider.BaseColumns;
 import android.util.Log;
 import android.util.Size;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.ImageButton;
+import android.widget.SimpleCursorAdapter;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -73,7 +76,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     private Button routeButton;
     private ImageButton initButton;
     private Button bluetooth_button;
-    private Button cameraButton;
+    private ImageButton cameraButton;
     private TextView txtView;
     private SearchView searchView;
     private int destination;
@@ -93,6 +96,12 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     private Symbol scr_loc;
     private Symbol des_loc;
     private boolean isRouteDisplay = false;
+    private static final String[] SUGGESTIONS = {
+            "Bauru", "Sao Paulo", "Rio de Janeiro",
+            "Bahia", "Mato Grosso", "Minas Gerais",
+            "Tocantins", "Rio Grande do Sul"
+    };
+    private SimpleCursorAdapter mAdapter;
 
     private final BroadcastReceiver receiver = new BroadcastReceiver() {
         @RequiresApi(api = Build.VERSION_CODES.R)
@@ -185,7 +194,8 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
                 qrCode = _qrCode;
                 Log.i("QR reader", _qrCode);
                 findViewById(R.id.search_view).setVisibility(View.VISIBLE);
-                findViewById(R.id.floor_level_buttons).setVisibility(View.VISIBLE);
+                findViewById(R.id.bottom_buttons).setVisibility(View.VISIBLE);
+                findViewById(R.id.initButton).setVisibility(View.VISIBLE);
                 cameraProvider.unbindAll();
                 previewView.setVisibility(View.INVISIBLE);
 //                qrCodeFoundButton.setVisibility(View.VISIBLE);
@@ -273,12 +283,14 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
                 if (previewView.getVisibility() == View.INVISIBLE) {
                     previewView.setVisibility(View.VISIBLE);
                     findViewById(R.id.search_view).setVisibility(View.INVISIBLE);
-                    findViewById(R.id.floor_level_buttons).setVisibility(View.INVISIBLE);
+                    findViewById(R.id.bottom_buttons).setVisibility(View.INVISIBLE);
+                    findViewById(R.id.initButton).setVisibility(View.INVISIBLE);
                     requestCamera();
                 } else if (previewView.getVisibility() == View.VISIBLE) {
 //                    bindCameraPreview(null);
                     findViewById(R.id.search_view).setVisibility(View.VISIBLE);
-                    findViewById(R.id.floor_level_buttons).setVisibility(View.VISIBLE);
+                    findViewById(R.id.bottom_buttons).setVisibility(View.VISIBLE);
+                    findViewById(R.id.initButton).setVisibility(View.VISIBLE);
                     cameraProvider.unbindAll();
                     previewView.setVisibility(View.INVISIBLE);
 
@@ -451,7 +463,6 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     public void onAccuracyChanged(Sensor sensor, int i) {
 
     }
-
 
     public void handleSearch(SearchView searchView, SymbolManager symbolManager, Button routeB, List<PoiGeoJsonObject> poiList) {
         searchView.setIconifiedByDefault(true);
