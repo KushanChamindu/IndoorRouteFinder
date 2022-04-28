@@ -107,14 +107,6 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     ArrayList<POI> arrayPOIList = new ArrayList<POI>();
 
 
-    private final BroadcastReceiver receiver = new BroadcastReceiver() {
-        @RequiresApi(api = Build.VERSION_CODES.R)
-        @Override
-        public void onReceive(Context context, Intent intent) {
-            BluetoothManagerActivity.onReceive(context, intent, symbolManager);
-        }
-    };
-
     @RequiresApi(api = Build.VERSION_CODES.R)
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -135,96 +127,8 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
 
         previewView = findViewById(R.id.activity_main_previewView);
         previewView.setVisibility(View.INVISIBLE);
-
         cameraProviderFuture = ProcessCameraProvider.getInstance(this);
-        //====================================================================================
 
-
-        // Locate the EditText in listview_main.xml
-//        editsearch = (SearchView) findViewById(R.id.search);
-//        editsearch.setOnQueryTextListener(this);
-
-
-    }
-
-    private void requestCamera() {
-        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED) {
-            startCamera();
-        } else {
-            if (ActivityCompat.shouldShowRequestPermissionRationale(this, Manifest.permission.CAMERA)) {
-                ActivityCompat.requestPermissions(MainActivity.this, new String[]{Manifest.permission.CAMERA}, PERMISSION_REQUEST_CAMERA);
-            } else {
-                ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.CAMERA}, PERMISSION_REQUEST_CAMERA);
-            }
-        }
-    }
-
-    @Override
-    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
-        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
-        if (requestCode == PERMISSION_REQUEST_CAMERA) {
-            if (grantResults.length == 1 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                startCamera();
-            } else {
-                Toast.makeText(this, "Camera Permission Denied", Toast.LENGTH_SHORT).show();
-            }
-        }
-    }
-
-    private void startCamera() {
-        cameraProviderFuture.addListener(() -> {
-            try {
-                cameraProvider = cameraProviderFuture.get();
-                bindCameraPreview(cameraProvider);
-            } catch (ExecutionException | InterruptedException e) {
-                Toast.makeText(this, "Error starting camera " + e.getMessage(), Toast.LENGTH_SHORT).show();
-            }
-        }, ContextCompat.getMainExecutor(this));
-    }
-
-    private void bindCameraPreview(@NonNull ProcessCameraProvider cameraProvider) {
-        previewView.setPreferredImplementationMode(PreviewView.ImplementationMode.SURFACE_VIEW);
-
-        Preview preview = new Preview.Builder()
-                .build();
-
-        CameraSelector cameraSelector = new CameraSelector.Builder()
-                .requireLensFacing(CameraSelector.LENS_FACING_BACK)
-                .build();
-
-        preview.setSurfaceProvider(previewView.createSurfaceProvider());
-
-        ImageAnalysis imageAnalysis =
-                new ImageAnalysis.Builder()
-                        .setTargetResolution(new Size(1280, 720))
-                        .setBackpressureStrategy(ImageAnalysis.STRATEGY_KEEP_ONLY_LATEST)
-                        .build();
-
-        imageAnalysis.setAnalyzer(ContextCompat.getMainExecutor(this), new QRCodeImageAnalyzer(new QRCodeFoundListener() {
-            @Override
-            public void onQRCodeFound(String _qrCode) {
-                qrCode = _qrCode;
-                Log.i("QR reader", _qrCode);
-                findViewById(R.id.search_view).setVisibility(View.VISIBLE);
-                findViewById(R.id.bottom_buttons).setVisibility(View.VISIBLE);
-                findViewById(R.id.initButton).setVisibility(View.VISIBLE);
-                cameraProvider.unbindAll();
-                previewView.setVisibility(View.INVISIBLE);
-//                qrCodeFoundButton.setVisibility(View.VISIBLE);
-                Toast.makeText(getApplicationContext(), "QR: " + _qrCode, Toast.LENGTH_SHORT).show();
-                double lat = Double.parseDouble(qrCode.split(",")[0]);
-                double lon = Double.parseDouble(qrCode.split(",")[1]);
-                POISelectionActivity.userRelocate(lat, lon, symbolManager);
-            }
-
-            @Override
-            public void qrCodeNotFound() {
-//                Log.i("QR reader", "QR not found");
-//                qrCodeFoundButton.setVisibility(View.INVISIBLE);
-            }
-        }));
-
-        Camera camera = cameraProvider.bindToLifecycle((LifecycleOwner) this, cameraSelector, imageAnalysis, preview);
     }
 
     @Override
@@ -266,28 +170,6 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
             }
             return true;
         });
-
-//        mapboxMap.addOnCameraMoveListener(new MapboxMap.OnCameraMoveListener() {
-//            @Override
-//            public void onCameraMove() {
-//                if (mapboxMap.getCameraPosition().zoom > 16) {
-//                    if (TurfJoins.inside(Point.fromLngLat(mapboxMap.getCameraPosition().target.getLongitude(),
-//                            mapboxMap.getCameraPosition().target.getLatitude()), Polygon.fromLngLats(boundingBoxList))) {
-//                        if (levelButtons.getVisibility() != View.VISIBLE) {
-//                            showLevelButton();
-//                        }
-//                    } else {
-//                        if (levelButtons.getVisibility() == View.VISIBLE) {
-//                            hideLevelButton();
-//                        }
-//                    }
-//                } else if (levelButtons.getVisibility() == View.VISIBLE) {
-//                    hideLevelButton();
-//                }
-//            }
-//        });
-
-
         cameraButton.setOnClickListener(new View.OnClickListener() {
             @RequiresApi(api = Build.VERSION_CODES.R)
             @Override
@@ -475,16 +357,13 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     public void onAccuracyChanged(Sensor sensor, int i) {
 
     }
-
+// ========================================Search Utils =========================================================================
     public void handleSearch(SearchView searchView, SymbolManager symbolManager, Button routeB, List<PoiGeoJsonObject> poiList) {
         searchView.setIconifiedByDefault(true);
         searchView.setQueryHint("Search here .....");
         searchView.onWindowFocusChanged(false);
         searchView.setMaxWidth(Integer.MAX_VALUE);
-//        animalNameList = new String[]{"Lion", "Tiger", "Dog",
-//                "Cat", "Tortoise", "Rat", "Elephant", "Fox",
-//                "Cow","Donkey","Monkey"};
-//
+
         for (int i = 0; i < poiList.size(); i++) {
             POI POINames = new POI(poiList.get(i).props.get("Name").replace("_lvl_0", ""));
             // Binds all strings into an array
@@ -493,7 +372,6 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         // Locate the ListView in listview_main.xml
         suggestionList = (ListView) findViewById(R.id.suggestionForSearch);
         // Pass results to ListViewAdapter Class
-
         adapter = new ListViewAdapter(this, arrayPOIList);
 
         // Binds the Adapter to the ListView
@@ -518,7 +396,6 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
                     searchView.setIconified(true);
                     return false;
                 } else {
-
                     if (isRouteDisplay) {
                         isRouteDisplay = false;
                         NavigationActivity.removeRoute(mapboxMap);
@@ -619,4 +496,89 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
             }
         });
     }
+
+    private final BroadcastReceiver receiver = new BroadcastReceiver() {
+        @RequiresApi(api = Build.VERSION_CODES.R)
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            BluetoothManagerActivity.onReceive(context, intent, symbolManager);
+        }
+    };
+
+// ==============================================Camera utils=======================================================================
+    private void requestCamera() {
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED) {
+            startCamera();
+        } else {
+            if (ActivityCompat.shouldShowRequestPermissionRationale(this, Manifest.permission.CAMERA)) {
+                ActivityCompat.requestPermissions(MainActivity.this, new String[]{Manifest.permission.CAMERA}, PERMISSION_REQUEST_CAMERA);
+            } else {
+                ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.CAMERA}, PERMISSION_REQUEST_CAMERA);
+            }
+        }
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        if (requestCode == PERMISSION_REQUEST_CAMERA) {
+            if (grantResults.length == 1 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                startCamera();
+            } else {
+                Toast.makeText(this, "Camera Permission Denied", Toast.LENGTH_SHORT).show();
+            }
+        }
+    }
+
+    private void startCamera() {
+        cameraProviderFuture.addListener(() -> {
+            try {
+                cameraProvider = cameraProviderFuture.get();
+                bindCameraPreview(cameraProvider);
+            } catch (ExecutionException | InterruptedException e) {
+                Toast.makeText(this, "Error starting camera " + e.getMessage(), Toast.LENGTH_SHORT).show();
+            }
+        }, ContextCompat.getMainExecutor(this));
+    }
+
+    private void bindCameraPreview(@NonNull ProcessCameraProvider cameraProvider) {
+        previewView.setPreferredImplementationMode(PreviewView.ImplementationMode.SURFACE_VIEW);
+        Preview preview = new Preview.Builder()
+                .build();
+        CameraSelector cameraSelector = new CameraSelector.Builder()
+                .requireLensFacing(CameraSelector.LENS_FACING_BACK)
+                .build();
+        preview.setSurfaceProvider(previewView.createSurfaceProvider());
+        ImageAnalysis imageAnalysis =
+                new ImageAnalysis.Builder()
+                        .setTargetResolution(new Size(1280, 720))
+                        .setBackpressureStrategy(ImageAnalysis.STRATEGY_KEEP_ONLY_LATEST)
+                        .build();
+        imageAnalysis.setAnalyzer(ContextCompat.getMainExecutor(this), new QRCodeImageAnalyzer(new QRCodeFoundListener() {
+            @Override
+            public void onQRCodeFound(String _qrCode) {
+                qrCode = _qrCode;
+                Log.i("QR reader", _qrCode);
+                findViewById(R.id.search_view).setVisibility(View.VISIBLE);
+                findViewById(R.id.bottom_buttons).setVisibility(View.VISIBLE);
+                findViewById(R.id.initButton).setVisibility(View.VISIBLE);
+                cameraProvider.unbindAll();
+                previewView.setVisibility(View.INVISIBLE);
+//                qrCodeFoundButton.setVisibility(View.VISIBLE);
+                Toast.makeText(getApplicationContext(), "QR: " + _qrCode, Toast.LENGTH_SHORT).show();
+                double lat = Double.parseDouble(qrCode.split(",")[0]);
+                double lon = Double.parseDouble(qrCode.split(",")[1]);
+                POISelectionActivity.userRelocate(lat, lon, symbolManager);
+            }
+            @Override
+            public void qrCodeNotFound() {
+                Toast.makeText( getApplicationContext(), "Scan QR code properly", Toast.LENGTH_SHORT).show();
+//                Log.i("QR reader", "QR not found");
+//                qrCodeFoundButton.setVisibility(View.INVISIBLE);
+            }
+        }));
+
+        Camera camera = cameraProvider.bindToLifecycle((LifecycleOwner) this, cameraSelector, imageAnalysis, preview);
+    }
+
 }
