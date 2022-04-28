@@ -58,13 +58,12 @@ public class BluetoothManagerActivity {
         if (BluetoothDevice.ACTION_FOUND.equals(action)) {
             int rssi = intent.getShortExtra(BluetoothDevice.EXTRA_RSSI, Short.MIN_VALUE);
 
-//            double distance = ((Math.pow(10,rssi/-20.0)) * 0.125)/(4*Math.PI)/10;
+            // double distance = ((Math.pow(10,rssi/-20.0)) * 0.125)/(4*Math.PI)/10;
             // n= 2.4038 and c = 61.3776
             double distance = Math.pow(10, (rssi + C) / (-10 * N));
             BluetoothDevice device = intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE);
-//            Log.i("Bluetooth", "Device: " + device.getName() + "  RSSI: " + rssi + "dBm \n distance ::" + distance);
-//            Toast.makeText(context, "Device: " + device.getName() + "  RSSI: " + rssi + "dBm \nDistance: "+ distance, Toast.LENGTH_SHORT).show();
             Log.i("Rassi list", String.valueOf(rssi_list));
+
             if (count == 30) {
                 Double average = rssi_list.stream()
                         .mapToDouble(d -> d)
@@ -74,9 +73,8 @@ public class BluetoothManagerActivity {
             } else if (device.getName().equals("Anchor 2")) {
                 count += 1;
                 rssi_list.add(rssi);
-//                Log.i("Bluetooth", "Device: " + device.getName() + "  RSSI: " + rssi + "dBm \n distance ::" + distance);
-//                Toast.makeText(context, "Device: " + device.getName() + "  RSSI: " + rssi + "dBm \nDistance: "+ distance, Toast.LENGTH_SHORT).show();
             }
+
             if (anchor_list.containsKey(device.getName())) {
                 anchor_list.get(device.getName()).setDistanceToUser(distance);
                 anchor_list.get(device.getName()).setUpdate(true);
@@ -89,8 +87,8 @@ public class BluetoothManagerActivity {
                 } else if (device.getName().equals("Anchor 3")) {
                     p3 = new Point(anchor_list.get("Anchor 3").getLat(), anchor_list.get("Anchor 3").getLon(), distance);
                 }
-
             }
+
             if (anchor_list.get("Anchor 1").isUpdate() && anchor_list.get("Anchor 2").isUpdate() &&
                     anchor_list.get("Anchor 3").isUpdate()) {
                 double[] a = Trilateration.Compute(p1, p2, p3);
@@ -98,10 +96,10 @@ public class BluetoothManagerActivity {
                 Log.i("User localization 2", String.valueOf(p2.gr()));
                 Log.i("User localization 3", String.valueOf(p3.gr()));
                 if(a != null){
-//                    POISelectionActivity.userRelocate(a[0] , a[1] , symbolManager);
+                // POISelectionActivity.userRelocate(a[0] , a[1] , symbolManager);
                     Log.i("Trilateration", "LatLon: " + a[0] + ", " + a[1]);
                 }
-//
+
                 anchor_list.get("Anchor 1").setUpdate(false);
                 anchor_list.get("Anchor 2").setUpdate(false);
                 anchor_list.get("Anchor 3").setUpdate(false);
@@ -140,14 +138,13 @@ public class BluetoothManagerActivity {
                 Log.i("Bluetooth", "Couldn't on bluetooth ");
             }
         }
-        // Log.i("Bluetooth", String.valueOf(requestCode) +" "+ resultCode);
     }
 
     public static void startDiscovery(Context context) {
         new SensorManagerActivity();
         if (!mBluetoothAdapter.isEnabled()) {
             CommonActivity.showDialog("Warning!", "Please turn on Bluetooth and Try Again.");
-            // Log.i("Bluetooth", "Turning on Bluetooth.....");
+
             // Intent intent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
             if (ActivityCompat.checkSelfPermission(context, Manifest.permission.BLUETOOTH_CONNECT) != PackageManager.PERMISSION_GRANTED) {
                 // TODO: Consider calling
@@ -164,7 +161,7 @@ public class BluetoothManagerActivity {
             Log.i("Bluetooth", "Bluetooth already on");
         }
 
-        //to Discoverable mode on
+        // to Discoverable mode on
         // Intent intent_discover = new Intent(BluetoothAdapter.ACTION_REQUEST_DISCOVERABLE);
         // startActivityForResult(intent_discover, REQUEST_DISCOVER_BT);
 
