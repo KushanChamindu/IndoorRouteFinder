@@ -20,7 +20,6 @@ import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 public class NavigationActivity {
     private static Map<String, PoiGeoJsonObject> navPointList = null;
